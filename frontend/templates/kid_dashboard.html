@@ -1,166 +1,241 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dashboard — EduGuard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a', 950: '#172554'
+            },
+            teal: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+              400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+              800: '#115e59', 900: '#134e4a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="font-sans antialiased bg-slate-50 text-slate-600">
+  <!-- Kid Header -->
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-teal-500 flex items-center justify-center">
+          <i class="fas fa-shield-halved text-white text-xs"></i>
+        </div>
+        <span class="text-lg font-bold text-slate-900">EduGuard</span>
+        <span class="text-xs bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full font-medium">Kid Portal</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-slate-500">{{ child.first_name }}</span>
+        <a href="/kid/logout" class="text-sm text-slate-400 hover:text-rose-500 transition">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+    </div>
+  </nav>
 
-{% block title %}My Dashboard — EduGuard{% endblock %}
-{% block page_title %}My Dashboard{% endblock %}
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- Welcome -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-slate-900">Hey {{ child.first_name }}! 👋</h2>
+      <p class="text-slate-500 mt-1">Here's your status today.</p>
+    </div>
 
-{% block content %}
-<!-- Welcome -->
-<div class="mb-8">
-  <h2 class="text-2xl font-bold text-slate-900">Hey {{ child.first_name }}! 👋</h2>
-  <p class="text-slate-500 mt-1">Here's your status today.</p>
-</div>
-
-<!-- Tier Card -->
-<div class="mb-8">
-  {% if child.access_level == 'full' %}
-  <div class="p-6 rounded-2xl bg-emerald-50 border-2 border-emerald-200">
-    <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white text-2xl">
-        <i class="fas fa-unlock"></i>
+    <!-- Tier Card -->
+    <div class="mb-8">
+      {% if child.access_level == 'full' %}
+      <div class="p-6 rounded-2xl bg-emerald-50 border-2 border-emerald-200">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white text-2xl">
+            <i class="fas fa-unlock"></i>
+          </div>
+          <div>
+            <div class="text-lg font-bold text-emerald-900">Full Access 🎉</div>
+            <div class="text-emerald-700">Great job! You have unrestricted internet access.</div>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="text-lg font-bold text-emerald-900">Full Access</div>
-        <div class="text-emerald-700">Great job! You have unrestricted internet access.</div>
+      {% elif child.access_level == 'limited' %}
+      <div class="p-6 rounded-2xl bg-amber-50 border-2 border-amber-200">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-full bg-amber-500 flex items-center justify-center text-white text-2xl">
+            <i class="fas fa-hourglass-half"></i>
+          </div>
+          <div>
+            <div class="text-lg font-bold text-amber-900">Limited Access</div>
+            <div class="text-amber-700">No social media or gaming. Keep up your grades and chores!</div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-  {% elif child.access_level == 'limited' %}
-  <div class="p-6 rounded-2xl bg-amber-50 border-2 border-amber-200">
-    <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-full bg-amber-500 flex items-center justify-center text-white text-2xl">
-        <i class="fas fa-hourglass-half"></i>
-      </div>
-      <div>
-        <div class="text-lg font-bold text-amber-900">Limited Access</div>
-        <div class="text-amber-700">No social media or gaming. Keep up your grades and chores!</div>
-      </div>
-    </div>
-  </div>
-  {% else %}
-  <div class="p-6 rounded-2xl bg-rose-50 border-2 border-rose-200">
-    <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-full bg-rose-500 flex items-center justify-center text-white text-2xl">
-        <i class="fas fa-lock"></i>
-      </div>
-      <div>
-        <div class="text-lg font-bold text-rose-900">Research Only</div>
-        <div class="text-rose-700">Only school sites allowed. Complete your chores to unlock more!</div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-</div>
-
-<!-- Stats -->
-<div class="grid sm:grid-cols-3 gap-6 mb-8">
-  <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-    <div class="w-12 h-12 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center mb-4">
-      <i class="fas fa-graduation-cap text-lg"></i>
-    </div>
-    <div class="text-3xl font-bold text-slate-900">{{ avg_grade or '—' }}</div>
-    <div class="text-sm text-slate-500">Avg Grade</div>
-  </div>
-  <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-    <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center mb-4">
-      <i class="fas fa-check-circle text-lg"></i>
-    </div>
-    <div class="text-3xl font-bold text-slate-900">{{ chores|selectattr('verified_by_parent','equalto',True)|list|length }}</div>
-    <div class="text-sm text-slate-500">Chores Verified</div>
-  </div>
-  <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
-      <i class="fas fa-clock text-lg"></i>
-    </div>
-    <div class="text-3xl font-bold text-slate-900">{{ chores|selectattr('is_completed','equalto',False)|list|length }}</div>
-    <div class="text-sm text-slate-500">Pending</div>
-  </div>
-</div>
-
-<!-- Chores -->
-<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 mb-8">
-  <h3 class="text-lg font-bold text-slate-900 mb-4">My Chores</h3>
-  {% if chores %}
-  <div class="space-y-3">
-    {% for chore in chores %}
-    <div class="flex items-center gap-4 p-4 rounded-xl border border-slate-100 {% if chore.verified_by_parent %}bg-emerald-50{% elif chore.is_completed %}bg-amber-50{% else %}bg-white{% endif %}">
-      <div class="w-10 h-10 rounded-full {% if chore.verified_by_parent %}bg-emerald-500{% elif chore.is_completed %}bg-amber-500{% else %}bg-slate-200{% endif %} flex items-center justify-center text-white">
-        {% if chore.verified_by_parent %}
-        <i class="fas fa-check"></i>
-        {% elif chore.is_completed %}
-        <i class="fas fa-hourglass"></i>
-        {% else %}
-        <i class="fas fa-circle text-slate-400"></i>
-        {% endif %}
-      </div>
-      <div class="flex-1">
-        <div class="font-semibold text-slate-900">{{ chore.name }}</div>
-        <div class="text-sm text-slate-500">{{ chore.description or 'No description' }} • {{ chore.reward_points }} pts</div>
-      </div>
-      {% if not chore.is_completed %}
-      <form action="/kid/chores/{{ chore.id }}/claim" method="POST">
-        <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition text-sm">I Did It</button>
-      </form>
-      {% elif chore.is_completed and not chore.verified_by_parent %}
-      <span class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Waiting for parent</span>
       {% else %}
-      <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Done</span>
+      <div class="p-6 rounded-2xl bg-rose-50 border-2 border-rose-200">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-full bg-rose-500 flex items-center justify-center text-white text-2xl">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div>
+            <div class="text-lg font-bold text-rose-900">Research Only</div>
+            <div class="text-rose-700">Only school sites allowed. Complete your chores to unlock more!</div>
+          </div>
+        </div>
+      </div>
       {% endif %}
     </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div class="text-center py-8 text-slate-400">
-    <i class="fas fa-clipboard-list text-4xl mb-3"></i>
-    <p>No chores assigned yet.</p>
-  </div>
-  {% endif %}
-</div>
 
-<!-- Grades -->
-<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 mb-8">
-  <h3 class="text-lg font-bold text-slate-900 mb-4">My Grades</h3>
-  {% if grades %}
-  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for grade in grades %}
-    <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-      <div class="text-sm text-slate-500">{{ grade.subject }}</div>
-      <div class="text-2xl font-bold text-slate-900">{{ grade.grade }}%</div>
+    <!-- Progress to Full Access -->
+    {% if avg_grade %}
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold text-slate-900">🎯 Goal: Full Access</h3>
+        <span class="text-sm font-medium {% if avg_grade >= 80 %}text-emerald-600{% elif avg_grade >= 65 %}text-amber-600{% else %}text-rose-600{% endif %}">
+          {{ avg_grade }}% average
+        </span>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-3">
+        <div class="h-3 rounded-full transition-all {% if avg_grade >= 80 %}bg-emerald-500{% elif avg_grade >= 65 %}bg-amber-500{% else %}bg-rose-500{% endif %}" style="width: {{ avg_grade }}%"></div>
+      </div>
+      <p class="text-sm text-slate-500 mt-2">
+        {% if avg_grade >= 80 %}
+        You're crushing it! Keep your grades at 80%+ to stay on Full Access.
+        {% elif avg_grade >= 65 %}
+        Getting close! Raise your average to 80% for Full Access.
+        {% else %}
+        Focus on your schoolwork! You need 80% average for Full Access.
+        {% endif %}
+      </p>
     </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div class="text-center py-8 text-slate-400">
-    <i class="fas fa-graduation-cap text-4xl mb-3"></i>
-    <p>No grades synced yet.</p>
-  </div>
-  {% endif %}
-</div>
+    {% endif %}
 
-<!-- Allowed Sites -->
-<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-  <h3 class="text-lg font-bold text-slate-900 mb-4">What I Can Access</h3>
-  {% if child.access_level == 'full' %}
-  <div class="flex flex-wrap gap-2">
-    <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">Everything</span>
+    <!-- Stats -->
+    <div class="grid sm:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+        <div class="w-12 h-12 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center mb-4">
+          <i class="fas fa-graduation-cap text-lg"></i>
+        </div>
+        <div class="text-3xl font-bold text-slate-900">{{ avg_grade or '—' }}</div>
+        <div class="text-sm text-slate-500">Avg Grade</div>
+      </div>
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+        <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center mb-4">
+          <i class="fas fa-check-circle text-lg"></i>
+        </div>
+        <div class="text-3xl font-bold text-slate-900">{{ chores|selectattr('verified_by_parent','equalto',True)|list|length }}</div>
+        <div class="text-sm text-slate-500">Chores Verified</div>
+      </div>
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+        <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+          <i class="fas fa-clock text-lg"></i>
+        </div>
+        <div class="text-3xl font-bold text-slate-900">{{ chores|selectattr('is_completed','equalto',False)|list|length }}</div>
+        <div class="text-sm text-slate-500">Pending</div>
+      </div>
+    </div>
+
+    <!-- Chores -->
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 mb-8">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">📝 My Chores</h3>
+      {% if chores %}
+      <div class="space-y-3">
+        {% for chore in chores %}
+        <div class="flex items-center gap-4 p-4 rounded-xl border border-slate-100 {% if chore.verified_by_parent %}bg-emerald-50{% elif chore.is_completed %}bg-amber-50{% else %}bg-white{% endif %}">
+          <div class="w-10 h-10 rounded-full {% if chore.verified_by_parent %}bg-emerald-500{% elif chore.is_completed %}bg-amber-500{% else %}bg-slate-200{% endif %} flex items-center justify-center text-white">
+            {% if chore.verified_by_parent %}
+            <i class="fas fa-check"></i>
+            {% elif chore.is_completed %}
+            <i class="fas fa-hourglass"></i>
+            {% else %}
+            <i class="fas fa-circle text-slate-400"></i>
+            {% endif %}
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-slate-900">{{ chore.name }}</div>
+            <div class="text-sm text-slate-500">{{ chore.description or 'No description' }} • {{ chore.reward_points }} pts</div>
+          </div>
+          {% if not chore.is_completed %}
+          <form action="/kid/chores/{{ chore.id }}/claim" method="POST">
+            <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition text-sm">I Did It</button>
+          </form>
+          {% elif chore.is_completed and not chore.verified_by_parent %}
+          <span class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Waiting for parent</span>
+          {% else %}
+          <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Done ✅</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-8 text-slate-400">
+        <i class="fas fa-clipboard-list text-4xl mb-3"></i>
+        <p>No chores assigned yet.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Grades -->
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 mb-8">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">📊 My Grades</h3>
+      {% if grades %}
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for grade in grades %}
+        {% set grade_num = grade.grade | int(default=0) %}
+        <div class="p-4 rounded-xl border border-slate-100 {% if grade_num >= 80 %}bg-emerald-50{% elif grade_num >= 65 %}bg-amber-50{% else %}bg-rose-50{% endif %}">
+          <div class="text-sm text-slate-500">{{ grade.subject }}</div>
+          <div class="text-2xl font-bold {% if grade_num >= 80 %}text-emerald-700{% elif grade_num >= 65 %}text-amber-700{% else %}text-rose-700{% endif %}">{{ grade.grade }}%</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-8 text-slate-400">
+        <i class="fas fa-graduation-cap text-4xl mb-3"></i>
+        <p>No grades synced yet.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Allowed Sites -->
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">🌐 What I Can Access</h3>
+      {% if child.access_level == 'full' %}
+      <div class="flex flex-wrap gap-2">
+        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">Everything 🎉</span>
+      </div>
+      {% elif child.access_level == 'limited' %}
+      <div class="flex flex-wrap gap-2 mb-3">
+        <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">✅ Education</span>
+        <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">✅ News</span>
+        <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">✅ Communication</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm font-medium line-through">❌ Social Media</span>
+        <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm font-medium line-through">❌ Gaming</span>
+        <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm font-medium line-through">❌ Streaming</span>
+      </div>
+      {% else %}
+      <div class="flex flex-wrap gap-2">
+        <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Wikipedia</span>
+        <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Khan Academy</span>
+        <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Edsby</span>
+        <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Google Classroom</span>
+      </div>
+      {% endif %}
+    </div>
   </div>
-  {% elif child.access_level == 'limited' %}
-  <div class="flex flex-wrap gap-2">
-    <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Education</span>
-    <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">News</span>
-    <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Communication</span>
-  </div>
-  <div class="mt-3 flex flex-wrap gap-2">
-    <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm font-medium line-through">Social Media</span>
-    <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm font-medium line-through">Gaming</span>
-    <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-sm font-medium line-through">Streaming</span>
-  </div>
-  {% else %}
-  <div class="flex flex-wrap gap-2">
-    <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Wikipedia</span>
-    <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Khan Academy</span>
-    <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Edsby</span>
-    <span class="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">Google Classroom</span>
-  </div>
-  {% endif %}
-</div>
-{% endblock %}
+</body>
+</html>

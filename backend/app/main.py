@@ -6,13 +6,14 @@ from fastapi.responses import RedirectResponse
 from app.core.config import settings
 from app.core.tenant import TenantMiddleware
 from app.core.security import verify_jwt_token
+from app.core.encryption import encrypt_value, decrypt_value
 from app.db.database import init_db, AsyncSessionLocal
-from app.models.models import Parent
+from app.models.models import Parent, EdsbyConfig, Child, GradeSync
 from app.api.auth import router as auth_router
 from app.api.parents import router as parents_router
 from app.api.children import router as children_router
 from app.api.devices import router as devices_router
-from app.api.grades import router as grades_router
+from app.api.grades import router as grades_router, _sync_edsby_for_parent
 from app.api.chores import router as chores_router
 from app.api.precommitment import router as precommitment_router
 from app.api.wellness import router as wellness_router
@@ -41,9 +42,42 @@ app.add_middleware(TenantMiddleware)
 app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 templates = Jinja2Templates(directory="frontend/templates")
 
+# --- APScheduler for background Edsby sync ---
+scheduler = None
+
 @app.on_event("startup")
 async def startup():
     await init_db()
+    global scheduler
+    try:
+        from apscheduler.schedulers.asyncio import AsyncIOScheduler
+        from apscheduler.triggers.cron import CronTrigger
+        scheduler = AsyncIOScheduler()
+
+        async def daily_sync():
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(EdsbyConfig).where(EdsbyConfig.is_active == True, EdsbyConfig.sync_enabled == True)
+                )
+                configs = result.scalars().all()
+                for config in configs:
+                    parent_result = await session.execute(
+                        select(Parent).where(Parent.id == config.parent_id)
+                    )
+                    parent = parent_result.scalars().first()
+                    if parent:
+                        await _sync_edsby_for_parent(parent, use_mock=False)
+
+        scheduler.add_job(daily_sync, CronTrigger(hour=6, minute=0), id="edsby_daily_sync", replace_existing=True)
+        scheduler.start()
+    except Exception as e:
+        print(f"Scheduler setup failed (non-critical): {e}")
+
+@app.on_event("shutdown")
+async def shutdown():
+    global scheduler
+    if scheduler:
+        scheduler.shutdown()
 
 @app.get("/health")
 async def health_check():
@@ -156,6 +190,10 @@ async def dashboard(request: Request):
         )
         recent_grades = recent_grades_result.scalars().all()
 
+        # Edsby config
+        edsby_result = await session.execute(select(EdsbyConfig).where(EdsbyConfig.parent_id == user.id))
+        edsby_config = edsby_result.scalars().first()
+
     return templates.TemplateResponse(request=request, name="dashboard.html", context={
         "user": user,
         "children": children,
@@ -164,7 +202,8 @@ async def dashboard(request: Request):
         "pending_chores": pending_chores,
         "avg_grade": avg_grade,
         "tier_counts": tier_counts,
-        "recent_grades": recent_grades
+        "recent_grades": recent_grades,
+        "edsby_config": edsby_config,
     })
 
 @app.get("/children")
@@ -321,21 +360,58 @@ async def add_grade_form(request: Request, child_id: int = Form(...), subject: s
     return RedirectResponse(url="/grades", status_code=302)
 
 @app.post("/edsby/configure")
-async def configure_edsby_form(request: Request, base_url: str = Form(...), username: str = Form(...), password: str = Form(...)):
+async def configure_edsby_form(
+    request: Request,
+    base_url: str = Form(...),
+    username: str = Form(...),
+    password: str = Form(...),
+    child_name: str = Form(None),
+    sync_enabled: bool = Form(False),
+):
     user = await get_user_from_cookie(request)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    from app.models.models import EdsbyConfig
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(EdsbyConfig).where(EdsbyConfig.parent_id == user.id))
         config = result.scalars().first()
+        encrypted_pw = encrypt_value(password)
         if config:
             config.base_url = base_url
             config.username = username
-            config.password_encrypted = password[:50]
+            config.password_encrypted = encrypted_pw
+            config.child_name = child_name
+            config.sync_enabled = sync_enabled
             config.is_active = True
+            config.sync_error_message = None
         else:
-            config = EdsbyConfig(parent_id=user.id, tenant_id=user.tenant_id, base_url=base_url, username=username, password_encrypted=password[:50], is_active=True)
+            config = EdsbyConfig(
+                parent_id=user.id,
+                tenant_id=user.tenant_id,
+                base_url=base_url,
+                username=username,
+                password_encrypted=encrypted_pw,
+                child_name=child_name,
+                sync_enabled=sync_enabled,
+                is_active=True,
+            )
             session.add(config)
         await session.commit()
     return RedirectResponse(url="/grades", status_code=302)
+
+@app.get("/edsby/connect")
+async def edsby_connect_page(request: Request):
+    user = await get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    async with AsyncSessionLocal() as session:
+        children_result = await session.execute(
+            select(Child).where(Child.parent_id == user.id, Child.tenant_id == user.tenant_id)
+        )
+        children = children_result.scalars().all()
+        edsby_result = await session.execute(select(EdsbyConfig).where(EdsbyConfig.parent_id == user.id))
+        edsby_config = edsby_result.scalars().first()
+    return templates.TemplateResponse(request=request, name="edsby_connect.html", context={
+        "user": user,
+        "children": children,
+        "edsby_config": edsby_config,
+    })

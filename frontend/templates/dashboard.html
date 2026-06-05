@@ -78,8 +78,43 @@
     </div>
   </div>
 
+  <!-- Edsby Status -->
+  <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+    <h3 class="text-lg font-bold text-slate-900 mb-4">Edsby Connection</h3>
+    {% if edsby_config and edsby_config.is_active %}
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+          <i class="fas fa-check-circle text-emerald-600"></i>
+        </div>
+        <div>
+          <div class="font-semibold text-slate-900">Connected</div>
+          <div class="text-xs text-slate-500">{{ edsby_config.base_url }}</div>
+        </div>
+      </div>
+      <div class="text-sm text-slate-500 mb-3">
+        Last sync: {{ edsby_config.last_synced_at.strftime('%Y-%m-%d %H:%M') if edsby_config.last_synced_at else 'Never' }}
+      </div>
+      <a href="/grades" class="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-medium">
+        View Grades <i class="fas fa-arrow-right"></i>
+      </a>
+    {% else %}
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+          <i class="fas fa-link-slash text-slate-400"></i>
+        </div>
+        <div>
+          <div class="font-semibold text-slate-900">Not Connected</div>
+          <div class="text-xs text-slate-500">Link your Edsby portal</div>
+        </div>
+      </div>
+      <a href="/edsby/connect" class="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition">
+        <i class="fas fa-plug"></i> Connect Edsby
+      </a>
+    {% endif %}
+  </div>
+
   <!-- Access Tiers -->
-  <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+  <div class="lg:col-span-1 bg-white rounded-xl p-6 shadow-sm border border-slate-100">
     <h3 class="text-lg font-bold text-slate-900 mb-4">Access Tier Overview</h3>
     <div class="space-y-4">
       <div class="flex items-center gap-4 p-4 rounded-xl bg-emerald-50 border border-emerald-100">

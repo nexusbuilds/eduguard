@@ -150,6 +150,49 @@ eduguard/
 └── README.md
 ```
 
+## Edsby Grade Integration
+
+EduGuard connects to your school's Edsby portal to automatically import your child's grades.
+
+### How It Works
+
+1. **Connect Edsby** — Go to `/edsby/connect` and enter your school URL, username, and password
+2. **Test Connection** — Click "Test Connection" to verify credentials work
+3. **Auto-Sync** — Enable daily sync (runs at 6 AM) or click "Sync Now" manually
+4. **Grades Display** — View color-coded grades (green ≥80%, amber 65-79%, red <65%) with GPA calculation
+
+### Supported Schools
+
+Any school district using **Edsby** is supported. Common URLs:
+- Near North District School Board: `https://nndsb.edsby.com`
+- Toronto District School Board: `https://tdsb.edsby.com`
+- York Region District School Board: `https://yrdsb.edsby.com`
+
+### Security
+
+- Passwords are encrypted with **AES-256 (Fernet)** before storage
+- Encryption key derived from your `JWT_SECRET_KEY`
+- Credentials never logged or transmitted in plain text
+- Playwright headless browser handles Edsby's JavaScript password encryption
+
+### Mock Mode (Testing)
+
+When real Edsby credentials are unavailable (e.g., account temporarily locked), use mock sync:
+```bash
+curl -X POST http://localhost:8080/api/grades/sync-mock \
+  -b "access_token=YOUR_COOKIE"
+# Returns realistic simulated grades for testing
+```
+
+### Manual Grade Entry
+
+If Edsby scraping fails or your school doesn't use Edsby, add grades manually:
+```bash
+curl -X POST http://localhost:8080/grades/add \
+  -b "access_token=YOUR_COOKIE" \
+  -d "child_id=1" -d "subject=Math" -d "grade=85"
+```
+
 ## API Endpoints
 
 | Prefix | Description |
@@ -158,12 +201,13 @@ eduguard/
 | `/api/parents` | Parent dashboard and profile |
 | `/api/children` | Child management, access levels |
 | `/api/devices` | Device management |
-| `/api/grades` | Edsby grade sync + manual grades |
+| `/api/grades` | Edsby grade sync + manual grades + GPA |
 | `/api/chores` | Chore creation, kid completion, parent verification |
 | `/api/precommitment` | Cooling-off periods, locked strict mode, accountability partners |
 | `/api/wellness` | Counselor directory (Ontario/OHIP), rule change requests |
 | `/api/reports` | Real-time summary stats + activity log |
 | `/api/policy` | Automatic tier evaluation (grades + chores) |
+| `/kid` | Kid portal (login with PIN, view grades/chores, mark chores done) |
 
 ## Testing the Full Flow
 
