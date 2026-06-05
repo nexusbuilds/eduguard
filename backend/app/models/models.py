@@ -90,3 +90,15 @@ class AccessTier(Base):
     description = Column(Text, nullable=True)
     features = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+
+class EdsbyConfig(Base):
+    __tablename__ = 'edsby_configs'
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String, index=True, nullable=False)
+    parent_id = Column(Integer, ForeignKey('parents.id'))
+    base_url = Column(String, nullable=True)
+    username = Column(String, nullable=True)
+    password_encrypted = Column(String, nullable=True)
+    is_active = Column(Boolean, default=False)
+    last_synced_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())

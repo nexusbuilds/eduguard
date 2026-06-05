@@ -16,6 +16,15 @@ async def list_children(current_user: Parent = Depends(get_current_user)):
         )
         return result.scalars().all()
 
+@router.post("/", response_model=ChildRead)
+async def create_child(child_data: ChildCreate, current_user: Parent = Depends(get_current_user)):
+    async with AsyncSessionLocal() as session:
+        new_child = Child(**child_data.model_dump(), parent_id=current_user.id, tenant_id=current_user.tenant_id)
+        session.add(new_child)
+        await session.commit()
+        await session.refresh(new_child)
+        return new_child
+
 @router.get("/{child_id}", response_model=ChildRead)
 async def get_child(child_id: int, current_user: Parent = Depends(get_current_user)):
     async with AsyncSessionLocal() as session:

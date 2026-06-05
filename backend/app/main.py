@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Request, Depends, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -19,6 +19,7 @@ from app.api.wellness import router as wellness_router
 from app.api.reports import router as reports_router
 from app.api.policy import router as policy_router
 from sqlalchemy import select
+from datetime import date
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -154,3 +155,77 @@ app.include_router(precommitment_router, prefix="/api/precommitment", tags=["pre
 app.include_router(wellness_router, prefix="/api/wellness", tags=["wellness"])
 app.include_router(reports_router, prefix="/api/reports", tags=["reports"])
 app.include_router(policy_router, prefix="/api/policy", tags=["policy"])
+
+# --- Form handlers for web UI ---
+@app.post("/children/add")
+async def add_child_form(request: Request, first_name: str = Form(...), last_name: str = Form(...), birthdate: str = Form(None), email: str = Form(None)):
+    user = await get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    from app.models.models import Child
+    async with AsyncSessionLocal() as session:
+        bd = date.fromisoformat(birthdate) if birthdate else None
+        new_child = Child(first_name=first_name, last_name=last_name, birthdate=bd, email=email, parent_id=user.id, tenant_id=user.tenant_id)
+        session.add(new_child)
+        await session.commit()
+    return RedirectResponse(url="/children", status_code=302)
+
+@app.post("/devices/add")
+async def add_device_form(request: Request, name: str = Form(...), device_type: str = Form("laptop"), mac_address: str = Form(None)):
+    user = await get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    from app.models.models import Device
+    async with AsyncSessionLocal() as session:
+        new_device = Device(name=name, device_type=device_type, mac_address=mac_address, tenant_id=user.tenant_id)
+        session.add(new_device)
+        await session.commit()
+    return RedirectResponse(url="/devices", status_code=302)
+
+@app.post("/chores/create")
+async def create_chore_form(request: Request, name: str = Form(...), description: str = Form(None), child_id: int = Form(0), reward_points: int = Form(10), due_date: str = Form(None)):
+    user = await get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    from app.models.models import Chore
+    from sqlalchemy import func
+    async with AsyncSessionLocal() as session:
+        dd = date.fromisoformat(due_date) if due_date else None
+        cid = child_id if child_id > 0 else None
+        new_chore = Chore(name=name, description=description, child_id=cid, reward_points=reward_points, due_date=dd, tenant_id=user.tenant_id)
+        session.add(new_chore)
+        await session.commit()
+    return RedirectResponse(url="/chores", status_code=302)
+
+@app.post("/grades/add")
+async def add_grade_form(request: Request, child_id: int = Form(...), subject: str = Form(...), grade: str = Form(...), grade_date: str = Form(None)):
+    user = await get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    from app.models.models import GradeSync
+    async with AsyncSessionLocal() as session:
+        gd = date.fromisoformat(grade_date) if grade_date else None
+        new_grade = GradeSync(child_id=child_id, subject=subject, grade=grade, grade_date=gd, tenant_id=user.tenant_id)
+        session.add(new_grade)
+        await session.commit()
+    return RedirectResponse(url="/grades", status_code=302)
+
+@app.post("/edsby/configure")
+async def configure_edsby_form(request: Request, base_url: str = Form(...), username: str = Form(...), password: str = Form(...)):
+    user = await get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    from app.models.models import EdsbyConfig
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(EdsbyConfig).where(EdsbyConfig.parent_id == user.id))
+        config = result.scalars().first()
+        if config:
+            config.base_url = base_url
+            config.username = username
+            config.password_encrypted = password[:50]
+            config.is_active = True
+        else:
+            config = EdsbyConfig(parent_id=user.id, tenant_id=user.tenant_id, base_url=base_url, username=username, password_encrypted=password[:50], is_active=True)
+            session.add(config)
+        await session.commit()
+    return RedirectResponse(url="/grades", status_code=302)
