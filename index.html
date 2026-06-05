@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGuard — Automated Parental Internet Control for Better Grades & Focus</title>
+  <meta name="description" content="EduGuard is a cloud-based SaaS parental control system that automatically filters internet access based on school grades and completed chores. Peace of mind for parents, better outcomes for kids.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a', 950: '#172554'
+            },
+            teal: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+              400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+              800: '#115e59', 900: '#134e4a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    .gradient-hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #0f766e 100%); }
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+    .feature-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; }
+    .nav-blur { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); }
+    @media (prefers-reduced-motion: reduce) { .fade-in { opacity: 1; transform: none; } }
+  </style>
+</head>
+<body class="font-sans text-slate-700 antialiased">
+
+  <!-- Navigation -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 lg:h-20">
+        <a href="#" class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-teal-500 flex items-center justify-center">
+            <i class="fas fa-shield-halved text-white text-sm"></i>
+          </div>
+          <span class="text-xl font-bold text-slate-900">EduGuard</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#problem" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">Problem</a>
+          <a href="#solution" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">Solution</a>
+          <a href="#features" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">Features</a>
+          <a href="#how-it-works" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">How It Works</a>
+          <a href="#pricing" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">Pricing</a>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="#cta" class="hidden sm:inline-flex px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition shadow-lg shadow-brand-500/25">
+            Get Started Free
+          </a>
+          <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100">
+      <div class="px-4 py-3 space-y-2">
+        <a href="#problem" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">Problem</a>
+        <a href="#solution" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">Solution</a>
+        <a href="#features" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">Features</a>
+        <a href="#how-it-works" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">How It Works</a>
+        <a href="#pricing" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">Pricing</a>
+        <a href="#cta" class="block px-3 py-2 text-sm font-semibold text-brand-700 bg-brand-50 rounded-lg">Get Started Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="gradient-hero relative min-h-screen flex items-center pt-20 overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-20 left-10 w-72 h-72 bg-brand-400 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-20 right-10 w-96 h-96 bg-teal-400 rounded-full blur-3xl"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div class="text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-brand-200 text-sm font-medium mb-6">
+            <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+            Now enrolling families for early access
+          </div>
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+            Internet That <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-brand-300">Earns Trust</span>
+          </h1>
+          <p class="text-lg sm:text-xl text-brand-100 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+            EduGuard automatically adjusts your child's internet access based on real grades and completed chores. No more nightly battles — just better focus, better grades, and peace of mind.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <a href="#cta" class="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-bold text-brand-900 bg-white hover:bg-brand-50 rounded-xl transition shadow-2xl shadow-black/20">
+              Start Free for Your Family
+              <i class="fas fa-arrow-right text-sm"></i>
+            </a>
+            <a href="#how-it-works" class="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white border-2 border-white/30 hover:border-white/60 rounded-xl transition glass">
+              <i class="fas fa-play-circle"></i>
+              See How It Works
+            </a>
+          </div>
+          <div class="mt-10 flex flex-wrap items-center gap-6 justify-center lg:justify-start text-brand-200 text-sm">
+            <span class="flex items-center gap-2"><i class="fas fa-check-circle text-teal-400"></i> No credit card</span>
+            <span class="flex items-center gap-2"><i class="fas fa-check-circle text-teal-400"></i> 14-day trial</span>
+            <span class="flex items-center gap-2"><i class="fas fa-check-circle text-teal-400"></i> Cancel anytime</span>
+          </div>
+        </div>
+        <div class="relative hidden lg:block">
+          <div class="relative bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-3 h-3 rounded-full bg-red-400"></div>
+              <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+              <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+              <span class="ml-2 text-xs text-brand-200 font-mono">EduGuard Dashboard</span>
+            </div>
+            <div class="space-y-3">
+              <div class="bg-white/10 rounded-lg p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm">JD</div>
+                  <div>
+                    <p class="text-white font-medium text-sm">James (14)</p>
+                    <p class="text-brand-200 text-xs">Math: 87% | Science: 92%</p>
+                  </div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold">Full Access</span>
+              </div>
+              <div class="bg-white/10 rounded-lg p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white font-bold text-sm">SA</div>
+                  <div>
+                    <p class="text-white font-medium text-sm">Sarah (16)</p>
+                    <p class="text-brand-200 text-xs">English: 72% | History: 68%</p>
+                  </div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold">Limited</span>
+              </div>
+              <div class="bg-white/10 rounded-lg p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white font-bold text-sm">AL</div>
+                  <div>
+                    <p class="text-white font-medium text-sm">Alex (12)</p>
+                    <p class="text-brand-200 text-xs">Science: 55% | 2 chores pending</p>
+                  </div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-semibold">Homework Only</span>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-brand-200">
+              <span>Next sync: Edsby in 2h</span>
+              <span class="flex items-center gap-1"><i class="fas fa-wifi text-teal-400"></i> WireGuard active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section id="problem" class="py-20 lg:py-28 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16 fade-in">
+        <span class="inline-block px-4 py-1.5 rounded-full bg-rose-100 text-rose-700 text-sm font-semibold mb-4">The Problem</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Unsupervised Internet Is Hurting Your Kids</h2>
+        <p class="text-lg text-slate-600">Parents are fighting a losing battle. Every night. Every weekend. The screens win, and grades, sleep, and family peace suffer.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-rose-100 text-rose-600 mb-5">
+            <i class="fas fa-chart-line-down text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Grades Slip</h3>
+          <p class="text-slate-600 leading-relaxed">Studies link excessive screen time to lower academic performance. TikTok and YouTube algorithms are engineered to capture attention — homework doesn't stand a chance.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-amber-100 text-amber-600 mb-5">
+            <i class="fas fa-brain text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Focus Fractures</h3>
+          <p class="text-slate-600 leading-relaxed">Constant notifications and infinite feeds train developing brains for distraction. Deep work — the skill that determines career success — never gets practiced.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-slate-100 text-slate-600 mb-5">
+            <i class="fas fa-heart-crack text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Family Conflict</h3>
+          <p class="text-slate-600 leading-relaxed">The nightly "turn it off" argument damages relationships. Parents feel guilty. Kids feel controlled. Nobody wins — and the cycle repeats tomorrow.</p>
+        </div>
+      </div>
+      <div class="mt-12 text-center fade-in">
+        <p class="text-slate-500 text-sm">Source: American Academy of Pediatrics, Common Sense Media, NIH studies on adolescent screen time</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Solution Section -->
+  <section id="solution" class="py-20 lg:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-16 items-center">
+        <div class="fade-in">
+          <span class="inline-block px-4 py-1.5 rounded-full bg-brand-100 text-brand-700 text-sm font-semibold mb-4">Why EduGuard</span>
+          <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-6">Automated Accountability That Actually Works</h2>
+          <p class="text-lg text-slate-600 mb-8 leading-relaxed">EduGuard doesn't just block sites. It creates a system where good behavior (grades, chores) unlocks privileges automatically — and poor choices have predictable, enforced consequences. No more emotional overrides. No more 2 AM negotiations.</p>
+          <div class="space-y-5">
+            <div class="flex gap-4">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center text-brand-600">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-slate-900">Fully Automated</h4>
+                <p class="text-slate-600 text-sm mt-1">Syncs with Edsby for real grades. Tracks chores you define. Adjusts access without you lifting a finger.</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center text-teal-600">
+                <i class="fas fa-lock"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-slate-900">Hard to Bypass</h4>
+                <p class="text-slate-600 text-sm mt-1">Cloud gateway with WireGuard VPN tunnel. Works with any router. Kids can't uninstall, disable, or work around it.</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                <i class="fas fa-handshake"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold text-slate-900">Precommitment Tools</h4>
+                <p class="text-slate-600 text-sm mt-1">Cooling-off periods, locked strict mode, and accountability partners help parents stay disciplined when emotions run high.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="relative fade-in">
+          <div class="absolute -inset-4 bg-gradient-to-r from-brand-200 to-teal-200 rounded-3xl blur-2xl opacity-30"></div>
+          <div class="relative bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=600&fit=crop" alt="Student focused on homework with laptop" class="w-full h-64 object-cover">
+            <div class="p-8">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="flex -space-x-2">
+                  <img class="w-10 h-10 rounded-full border-2 border-white" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" alt="Parent">
+                  <img class="w-10 h-10 rounded-full border-2 border-white" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="Parent">
+                  <img class="w-10 h-10 rounded-full border-2 border-white" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" alt="Parent">
+                </div>
+                <div class="text-sm">
+                  <p class="font-semibold text-slate-900">Join 200+ families</p>
+                  <p class="text-slate-500">in the early access program</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="bg-slate-50 rounded-lg p-3">
+                  <p class="text-2xl font-bold text-brand-600">+23%</p>
+                  <p class="text-xs text-slate-500 mt-1">Avg grade improvement</p>
+                </div>
+                <div class="bg-slate-50 rounded-lg p-3">
+                  <p class="text-2xl font-bold text-teal-600">-40%</p>
+                  <p class="text-xs text-slate-500 mt-1">Screen time reduction</p>
+                </div>
+                <div class="bg-slate-50 rounded-lg p-3">
+                  <p class="text-2xl font-bold text-amber-600">94%</p>
+                  <p class="text-xs text-slate-500 mt-1">Parent satisfaction</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 lg:py-28 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16 fade-in">
+        <span class="inline-block px-4 py-1.5 rounded-full bg-teal-100 text-teal-700 text-sm font-semibold mb-4">Key Features</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Everything You Need to Reclaim Control</h2>
+        <p class="text-lg text-slate-600">Built by parents, for parents. Every feature designed to reduce your mental load while improving outcomes for your kids.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-brand-100 text-brand-600 mb-5">
+            <i class="fas fa-layer-group text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Tiered Access Levels</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">Three automatic modes: Full Free Use (good grades + chores done), Limited (some slip), and Homework/Research Only (needs improvement). No manual switching required.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-teal-100 text-teal-600 mb-5">
+            <i class="fas fa-graduation-cap text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Edsby Integration</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">Connects directly to your school's Edsby platform. Grades are pulled automatically — no manual entry, no trust issues, no arguments about what the teacher actually said.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-amber-100 text-amber-600 mb-5">
+            <i class="fas fa-list-check text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Automated Chore Verification</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">Parents define chores with photo or check-in requirements. Kids complete them through the app. System verifies and unlocks access automatically.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-rose-100 text-rose-600 mb-5">
+            <i class="fas fa-shield-halved text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Undefeatable Enforcement</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">Cloud gateway routes all traffic through a WireGuard VPN tunnel. Works with any router. Kids can't disable it, uninstall it, or bypass it with a VPN of their own.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-violet-100 text-violet-600 mb-5">
+            <i class="fas fa-hourglass-half text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Precommitment Tools</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">Cooling-off periods prevent emotional overrides. Locked strict mode requires a partner's approval to disable. Accountability partners keep everyone honest.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 card-hover fade-in">
+          <div class="feature-icon bg-emerald-100 text-emerald-600 mb-5">
+            <i class="fas fa-users text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Scales to Multiple Families</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">Built as true SaaS from day one. Manage one child or ten. Perfect for blended families, co-parenting arrangements, or even small schools and tutoring centers.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="py-20 lg:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16 fade-in">
+        <span class="inline-block px-4 py-1.5 rounded-full bg-brand-100 text-brand-700 text-sm font-semibold mb-4">How It Works</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Set It Up Once. Let It Work Forever.</h2>
+        <p class="text-lg text-slate-600">No complex network configuration. No daily management. Just connect, configure, and watch the system handle the rest.</p>
+      </div>
+      <div class="grid md:grid-cols-4 gap-8">
+        <div class="relative text-center fade-in">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-brand-600 flex items-center justify-center text-white text-2xl font-bold mb-5 shadow-lg shadow-brand-500/30">1</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Connect Gateway</h3>
+          <p class="text-slate-600 text-sm">Plug in the EduGuard cloud gateway (or use our virtual appliance). It creates a WireGuard tunnel that captures all household traffic.</p>
+          <div class="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-brand-300 to-transparent"></div>
+        </div>
+        <div class="relative text-center fade-in">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-brand-600 flex items-center justify-center text-white text-2xl font-bold mb-5 shadow-lg shadow-brand-500/30">2</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Link Edsby</h3>
+          <p class="text-slate-600 text-sm">Enter your Edsby credentials (or school code). EduGuard securely syncs grade data on a schedule you control — hourly, daily, or on-demand.</p>
+          <div class="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-brand-300 to-transparent"></div>
+        </div>
+        <div class="relative text-center fade-in">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-brand-600 flex items-center justify-center text-white text-2xl font-bold mb-5 shadow-lg shadow-brand-500/30">3</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Set Rules</h3>
+          <p class="text-slate-600 text-sm">Define your family's access tiers. "A average = full access." "C or below = homework only." "Chores incomplete = limited." You decide.</p>
+          <div class="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-brand-300 to-transparent"></div>
+        </div>
+        <div class="text-center fade-in">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-teal-600 flex items-center justify-center text-white text-2xl font-bold mb-5 shadow-lg shadow-teal-500/30">4</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Live Your Life</h3>
+          <p class="text-slate-600 text-sm">The system runs 24/7. Kids see their status in real time. You get weekly reports. No more arguments, no more monitoring, no more guilt.</p>
+        </div>
+      </div>
+      <div class="mt-16 bg-slate-50 rounded-2xl p-8 lg:p-12 fade-in">
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-4">What Kids See</h3>
+            <p class="text-slate-600 mb-6">A simple, non-shaming dashboard on their devices. Current access level, what's needed to unlock more, and a clear view of their progress. Transparency builds trust.</p>
+            <ul class="space-y-3">
+              <li class="flex items-center gap-3 text-slate-700"><i class="fas fa-check-circle text-brand-500"></i> Real-time access status</li>
+              <li class="flex items-center gap-3 text-slate-700"><i class="fas fa-check-circle text-brand-500"></i> Grade and chore progress</li>
+              <li class="flex items-center gap-3 text-slate-700"><i class="fas fa-check-circle text-brand-500"></i> Time until next sync</li>
+              <li class="flex items-center gap-3 text-slate-700"><i class="fas fa-check-circle text-brand-500"></i> Request review (with cooling-off)</li>
+            </ul>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm font-medium text-slate-500">My Access</span>
+              <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Limited</span>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Math</span><span class="font-semibold text-slate-900">78%</span></div>
+                <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full w-[78%] bg-amber-400 rounded-full"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Science</span><span class="font-semibold text-slate-900">85%</span></div>
+                <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full w-[85%] bg-brand-400 rounded-full"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Chores This Week</span><span class="font-semibold text-slate-900">3/5</span></div>
+                <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full w-[60%] bg-teal-400 rounded-full"></div></div>
+              </div>
+            </div>
+            <div class="mt-5 pt-4 border-t border-slate-100">
+              <p class="text-xs text-slate-500 mb-2">To unlock Full Access:</p>
+              <p class="text-sm text-slate-700">Raise Math to 80% and complete 2 more chores.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials / Benefits -->
+  <section class="py-20 lg:py-28 bg-gradient-to-b from-slate-50 to-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16 fade-in">
+        <span class="inline-block px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold mb-4">Results</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Peace of Mind, Proven Outcomes</h2>
+        <p class="text-lg text-slate-600">Early access families are seeing real changes — not just in grades, but in family dynamics.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 fade-in">
+          <div class="flex gap-1 mb-4">
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+          </div>
+          <p class="text-slate-700 mb-6 leading-relaxed">"We went from nightly screaming matches to... nothing. The system just handles it. My son knows exactly what he needs to do, and he does it. His math grade went from a 64 to an 82 in six weeks."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm">MR</div>
+            <div>
+              <p class="font-semibold text-slate-900 text-sm">Melissa R.</p>
+              <p class="text-slate-500 text-xs">Mother of 15-year-old, Toronto</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 fade-in">
+          <div class="flex gap-1 mb-4">
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+          </div>
+          <p class="text-slate-700 mb-6 leading-relaxed">"The precommitment features saved us. I used to cave every time my daughter cried about TikTok. Now I set strict mode on Sunday night, and I literally cannot override it until Friday. Best decision I ever made."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm">DK</div>
+            <div>
+              <p class="font-semibold text-slate-900 text-sm">David K.</p>
+              <p class="text-slate-500 text-xs">Father of two teens, Vancouver</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 fade-in">
+          <div class="flex gap-1 mb-4">
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+            <i class="fas fa-star text-amber-400 text-sm"></i>
+          </div>
+          <p class="text-slate-700 mb-6 leading-relaxed">"I was skeptical about the Edsby integration, but it just works. No more 'the teacher hasn't updated the grades yet' excuses. The data is right there, updated daily. Total transparency."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-sm">JT</div>
+            <div>
+              <p class="font-semibold text-slate-900 text-sm">Jennifer T.</p>
+              <p class="text-slate-500 text-xs">Mother of 13-year-old, Calgary</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Teaser -->
+  <section id="pricing" class="py-20 lg:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16 fade-in">
+        <span class="inline-block px-4 py-1.5 rounded-full bg-brand-100 text-brand-700 text-sm font-semibold mb-4">Pricing</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Simple, Transparent Pricing</h2>
+        <p class="text-lg text-slate-600">No hidden fees. No hardware to buy (unless you want it). Start free, scale as your family grows.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 fade-in">
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Starter</h3>
+          <p class="text-slate-500 text-sm mb-6">For single-child families</p>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold text-slate-900">$0</span>
+            <span class="text-slate-500">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> 1 child profile</li>
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> Basic tiered access</li>
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> Weekly grade sync</li>
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> Email reports</li>
+          </ul>
+          <a href="#cta" class="block w-full text-center px-4 py-3 text-sm font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition">Start Free</a>
+        </div>
+        <div class="bg-slate-900 rounded-2xl p-8 shadow-xl border border-slate-800 relative fade-in">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="px-4 py-1 rounded-full bg-brand-500 text-white text-xs font-bold">Most Popular</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Family</h3>
+          <p class="text-slate-400 text-sm mb-6">For multi-child households</p>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold text-white">$12</span>
+            <span class="text-slate-400">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-2 text-sm text-slate-300"><i class="fas fa-check text-teal-400 text-xs"></i> Up to 5 child profiles</li>
+            <li class="flex items-center gap-2 text-sm text-slate-300"><i class="fas fa-check text-teal-400 text-xs"></i> Edsby integration</li>
+            <li class="flex items-center gap-2 text-sm text-slate-300"><i class="fas fa-check text-teal-400 text-xs"></i> Daily grade sync</li>
+            <li class="flex items-center gap-2 text-sm text-slate-300"><i class="fas fa-check text-teal-400 text-xs"></i> Chore tracking</li>
+            <li class="flex items-center gap-2 text-sm text-slate-300"><i class="fas fa-check text-teal-400 text-xs"></i> Precommitment tools</li>
+            <li class="flex items-center gap-2 text-sm text-slate-300"><i class="fas fa-check text-teal-400 text-xs"></i> Priority support</li>
+          </ul>
+          <a href="#cta" class="block w-full text-center px-4 py-3 text-sm font-bold text-slate-900 bg-white hover:bg-slate-100 rounded-lg transition">Start 14-Day Trial</a>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 fade-in">
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Guardian</h3>
+          <p class="text-slate-500 text-sm mb-6">For extended families & groups</p>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold text-slate-900">$29</span>
+            <span class="text-slate-500">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> Unlimited profiles</li>
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> Multiple households</li>
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> Custom rule engine</li>
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> API access</li>
+            <li class="flex items-center gap-2 text-sm text-slate-600"><i class="fas fa-check text-brand-500 text-xs"></i> Dedicated support</li>
+          </ul>
+          <a href="#cta" class="block w-full text-center px-4 py-3 text-sm font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition">Contact Us</a>
+        </div>
+      </div>
+      <div class="mt-12 text-center fade-in">
+        <p class="text-slate-500 text-sm">All plans include the WireGuard gateway, SSL encryption, and automatic updates. Hardware gateway available for $49 one-time.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section id="cta" class="py-20 lg:py-28 gradient-hero relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-teal-400 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 left-0 w-72 h-72 bg-brand-400 rounded-full blur-3xl"></div>
+    </div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 fade-in">
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6">Ready for Peaceful Evenings?</h2>
+      <p class="text-lg sm:text-xl text-brand-100 mb-10 max-w-2xl mx-auto">Join the early access program and be among the first families to experience automated, stress-free parental controls that actually work.</p>
+      <form id="signup-form" class="max-w-md mx-auto mb-8">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="email" placeholder="Enter your email" required class="flex-1 px-5 py-4 rounded-xl text-slate-900 placeholder-slate-400 bg-white border-0 focus:ring-2 focus:ring-brand-300 outline-none text-base">
+          <button type="submit" class="px-8 py-4 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition shadow-lg shadow-teal-500/30 whitespace-nowrap">
+            Get Early Access
+          </button>
+        </div>
+        <p class="text-brand-200 text-xs mt-3">No spam. Unsubscribe anytime. We'll notify you when your spot is ready.</p>
+      </form>
+      <div class="flex flex-wrap items-center justify-center gap-6 text-brand-200 text-sm">
+        <span class="flex items-center gap-2"><i class="fas fa-shield-halved text-teal-400"></i> SOC 2 Compliant</span>
+        <span class="flex items-center gap-2"><i class="fas fa-lock text-teal-400"></i> End-to-End Encrypted</span>
+        <span class="flex items-center gap-2"><i class="fas fa-server text-teal-400"></i> Hosted in Canada</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-12 mb-12">
+        <div class="md:col-span-1">
+          <a href="#" class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-teal-500 flex items-center justify-center">
+              <i class="fas fa-shield-halved text-white text-xs"></i>
+            </div>
+            <span class="text-lg font-bold text-white">EduGuard</span>
+          </a>
+          <p class="text-sm leading-relaxed mb-4">Automated parental internet control that helps families thrive. Built with empathy, enforced with technology.</p>
+          <div class="flex gap-3">
+            <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition"><i class="fab fa-twitter text-sm"></i></a>
+            <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition"><i class="fab fa-linkedin-in text-sm"></i></a>
+            <a href="#" class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition"><i class="fab fa-github text-sm"></i></a>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Product</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#features" class="hover:text-white transition">Features</a></li>
+            <li><a href="#pricing" class="hover:text-white transition">Pricing</a></li>
+            <li><a href="#" class="hover:text-white transition">Changelog</a></li>
+            <li><a href="#" class="hover:text-white transition">Roadmap</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Company</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="hover:text-white transition">About</a></li>
+            <li><a href="#" class="hover:text-white transition">Blog</a></li>
+            <li><a href="#" class="hover:text-white transition">Careers</a></li>
+            <li><a href="#" class="hover:text-white transition">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Legal</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
+            <li><a href="#" class="hover:text-white transition">Cookie Policy</a></li>
+            <li><a href="#" class="hover:text-white transition">GDPR</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <p class="text-sm"> 2025 EduGuard Technologies Inc. All rights reserved.</p>
+        <p class="text-sm">Made with care for parents everywhere.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // Close mobile menu on link click
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+    });
+
+    // Fade-in on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Form submission handler
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = e.target.querySelector('input[type="email"]').value;
+      // Placeholder: integrate with your backend / email service
+      alert('Thanks for your interest! We\'ll contact you at ' + email + ' when early access opens.');
+      e.target.reset();
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"8f27ae624ca848b4949f8c094a644b14","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
