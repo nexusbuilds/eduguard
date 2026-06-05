@@ -262,6 +262,10 @@ app.include_router(wellness_router, prefix="/api/wellness", tags=["wellness"])
 app.include_router(reports_router, prefix="/api/reports", tags=["reports"])
 app.include_router(policy_router, prefix="/api/policy", tags=["policy"])
 
+# --- Kid portal ---
+from app.api.kid import router as kid_router
+app.include_router(kid_router, prefix="/kid", tags=["kid"])
+
 # --- Form handlers for web UI ---
 @app.post("/children/add")
 async def add_child_form(request: Request, first_name: str = Form(...), last_name: str = Form(...), birthdate: str = Form(None), email: str = Form(None)):

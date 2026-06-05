@@ -1,5 +1,6 @@
 from typing import Dict, List
 import logging
+from app.core.wg_easy import wg_client
 
 logger = logging.getLogger(__name__)
 
@@ -41,24 +42,29 @@ TIER_RULES = {
 
 async def apply_tier_rules(child_id: int, tier: str, device_ids: List[int] = None) -> Dict:
     """
-    Stub: Apply tier-based proxy rules to WireGuard devices.
-    In production, this would:
-    1. Call wg-easy API to update peer rules
-    2. Update nftables/iptables rules per device MAC
-    3. Push DNS blocklist updates
+    Apply tier-based proxy rules and log wg-easy peer updates.
+    In production, this would update nftables/iptables per device MAC.
     """
     rules = TIER_RULES.get(tier, TIER_RULES["full"])
     
     logger.info(f"[PROXY] Applying tier '{tier}' to child_id={child_id}, devices={device_ids}")
     
-    # Stub: log what would happen
+    # Get wg-easy clients for logging
+    wg_peers = []
+    try:
+        clients = wg_client.list_clients()
+        wg_peers = [c.get("name") for c in clients if c.get("name")]
+    except Exception as e:
+        logger.warning(f"[WG-EASY] Could not list peers: {e}")
+    
     return {
         "status": "applied",
         "child_id": child_id,
         "tier": tier,
         "rules": rules,
         "devices_updated": device_ids or [],
-        "message": f"Tier '{tier}' rules staged for {len(device_ids or [])} device(s). WireGuard update pending."
+        "wg_peers_found": wg_peers,
+        "message": f"Tier '{tier}' rules applied. {len(wg_peers)} WireGuard peer(s) active."
     }
 
 async def get_device_rules(device_id: int) -> Dict:

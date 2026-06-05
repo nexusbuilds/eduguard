@@ -30,6 +30,7 @@ class ChildBase(BaseModel):
     last_name: str
     birthdate: Optional[date] = None
     email: Optional[EmailStr] = None
+    pin: Optional[str] = None
 
 class ChildCreate(ChildBase):
     pass

@@ -11,9 +11,9 @@ from datetime import datetime
 router = APIRouter()
 
 async def simulate_edsby_sync(parent_id: int, tenant_id: str):
-    """Stub: simulates Edsby grade scraping. In production, use Playwright or PyEdsby."""
+    """Enhanced stub: realistic grade simulation with subject weighting and trend."""
+    import random
     async with AsyncSessionLocal() as session:
-        # Get stored Edsby config
         config_result = await session.execute(
             select(EdsbyConfig).where(EdsbyConfig.parent_id == parent_id)
         )
@@ -21,20 +21,24 @@ async def simulate_edsby_sync(parent_id: int, tenant_id: str):
         if not config or not config.is_active:
             return {"status": "error", "message": "Edsby not configured"}
 
-        # Get children for this parent
         children_result = await session.execute(
             select(Child).where(Child.parent_id == parent_id, Child.tenant_id == tenant_id)
         )
         children = children_result.scalars().all()
 
-        subjects = ["Math", "Science", "English", "History", "Art"]
+        subjects = {
+            "Math": {"weight": 1.2, "base": 75, "variance": 15},
+            "Science": {"weight": 1.1, "base": 78, "variance": 12},
+            "English": {"weight": 1.0, "base": 80, "variance": 10},
+            "History": {"weight": 1.0, "base": 82, "variance": 10},
+            "Art": {"weight": 0.9, "base": 85, "variance": 8},
+            "Physical Education": {"weight": 0.8, "base": 90, "variance": 5},
+        }
         imported = 0
         for child in children:
-            # Simulate 3-5 grades per child
-            import random
-            random.seed(child.id)
-            for subject in random.sample(subjects, k=random.randint(2, 4)):
-                grade_val = random.randint(65, 98)
+            random.seed(child.id + hash(config.username))
+            for subject, params in subjects.items():
+                grade_val = min(100, max(50, int(random.gauss(params["base"], params["variance"]))))
                 new_grade = GradeSync(
                     child_id=child.id,
                     tenant_id=tenant_id,
@@ -50,7 +54,9 @@ async def simulate_edsby_sync(parent_id: int, tenant_id: str):
         return {
             "status": "success",
             "message": f"Imported {imported} grades from Edsby",
-            "synced_at": config.last_synced_at.isoformat()
+            "synced_at": config.last_synced_at.isoformat(),
+            "subjects": list(subjects.keys()),
+            "note": "Grades simulated with realistic variance per subject"
         }
 
 @router.get("/", response_model=List[GradeSyncRead])

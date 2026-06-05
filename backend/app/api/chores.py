@@ -10,7 +10,8 @@ from datetime import datetime
 
 router = APIRouter()
 
-from app.core.proxy import apply_tier_rules
+from app.core.proxy import apply_tier_rules, TIER_RULES
+from app.core.wg_easy import wg_client
 from app.models.models import Device
 
 async def reevaluate_child_tier(child_id: int, tenant_id: str):
@@ -86,13 +87,14 @@ async def verify_chore(chore_id: int, current_user: Parent = Depends(get_current
         # Trigger tier re-evaluation
         if chore.child_id:
             tier_result = await reevaluate_child_tier(chore.child_id, current_user.tenant_id)
+            tr = tier_result.get("tier_result")
             return {
                 "message": "Chore verified",
                 "chore_id": chore_id,
                 "tier_update": {
                     "child_id": chore.child_id,
-                    "new_tier": tier_result.recommended_tier,
-                    "reason": tier_result.reason
+                    "new_tier": tr.recommended_tier if tr else "unknown",
+                    "reason": tr.reason if tr else "N/A"
                 }
             }
         return {"message": "Chore verified", "chore_id": chore_id}

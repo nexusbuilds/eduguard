@@ -24,6 +24,7 @@ class Child(Base):
     email = Column(String, nullable=True)
     parent_id = Column(Integer, ForeignKey('parents.id'))
     access_level = Column(String, default="full")  # full, limited, research-only
+    pin = Column(String, nullable=True)  # 4-digit PIN for kid login
     created_at = Column(DateTime, server_default=func.now())
     parent = relationship("Parent", back_populates="children")
     grades = relationship("GradeSync", back_populates="child", cascade="all, delete-orphan")
