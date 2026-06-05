@@ -35,7 +35,7 @@ async def _clear_old_grades(session, child_id: int, tenant_id: str):
 
 
 async def _sync_edsby_for_parent(parent: Parent, use_mock: bool = False) -> dict:
-    """Core sync logic. Returns status dict."""
+    """Core sync logic. Discovers children from Edsby, matches to EduGuard children, stores grades per child."""
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             select(EdsbyConfig).where(EdsbyConfig.parent_id == parent.id)
@@ -56,12 +56,12 @@ async def _sync_edsby_for_parent(parent: Parent, use_mock: bool = False) -> dict
             await session.commit()
             return {"status": "error", "message": "Credential decryption failed"}
 
-        # Create scraper
+        # Create scraper and discover children + grades
         scraper = create_scraper(config.base_url, config.username, password, use_mock=use_mock)
 
         try:
             with scraper:
-                grades = scraper.scrape_grades(child_name=config.child_name)
+                edsby_children = scraper.scrape_all_children_grades()
         except EdsbyAuthError as e:
             config.sync_error_message = str(e)
             config.is_active = False
@@ -76,34 +76,65 @@ async def _sync_edsby_for_parent(parent: Parent, use_mock: bool = False) -> dict
             await session.commit()
             return {"status": "error", "message": f"Sync failed: {e}"}
 
-        # Get children to map grades to
+        # Get EduGuard children for matching
         children_result = await session.execute(
             select(Child).where(Child.parent_id == parent.id, Child.tenant_id == parent.tenant_id)
         )
-        children = children_result.scalars().all()
+        edu_children = children_result.scalars().all()
 
-        if not children:
-            return {"status": "error", "message": "No children found to sync grades to"}
+        if not edu_children:
+            return {"status": "error", "message": "No children found in EduGuard to sync grades to"}
 
-        # For POC with one child, assign all grades to the first child
-        # TODO: Map by child_name when multiple children supported
-        target_child = children[0]
+        if not edsby_children:
+            return {"status": "error", "message": "No children found in Edsby account"}
 
-        # Clear old grades
-        await _clear_old_grades(session, target_child.id, parent.tenant_id)
+        # Match Edsby children to EduGuard children by name
+        imported_total = 0
+        matched_children = []
 
-        # Insert new grades
-        imported = 0
-        for g in grades:
-            new_grade = GradeSync(
-                child_id=target_child.id,
-                tenant_id=parent.tenant_id,
-                subject=g.subject,
-                grade=g.grade,
-                grade_date=g.grade_date or date.today(),
-            )
-            session.add(new_grade)
-            imported += 1
+        for edsby_child in edsby_children:
+            # Find matching EduGuard child by name
+            matched_edu_child = None
+            edsby_name_lower = edsby_child.name.lower()
+            edsby_first = edsby_name_lower.split()[0] if edsby_name_lower else ""
+
+            for edu_child in edu_children:
+                edu_full_name = f"{edu_child.first_name} {edu_child.last_name}".lower()
+                edu_first = edu_child.first_name.lower()
+                edu_last = edu_child.last_name.lower()
+                # Priority: first name exact match, then full name contains
+                if edu_first == edsby_first:
+                    matched_edu_child = edu_child
+                    break
+                elif edu_full_name in edsby_name_lower or edsby_name_lower in edu_full_name:
+                    matched_edu_child = edu_child
+                    break
+
+            # If no match and only one EduGuard child, assign to them
+            if not matched_edu_child and len(edu_children) == 1:
+                matched_edu_child = edu_children[0]
+
+            if matched_edu_child:
+                # Clear old grades for this child
+                await _clear_old_grades(session, matched_edu_child.id, parent.tenant_id)
+
+                # Insert new grades
+                for g in edsby_child.grades:
+                    new_grade = GradeSync(
+                        child_id=matched_edu_child.id,
+                        tenant_id=parent.tenant_id,
+                        subject=g.subject,
+                        grade=g.grade,
+                        grade_date=g.grade_date or date.today(),
+                    )
+                    session.add(new_grade)
+                    imported_total += 1
+
+                matched_children.append({
+                    "edsby_name": edsby_child.name,
+                    "edu_guard_name": f"{matched_edu_child.first_name} {matched_edu_child.last_name}",
+                    "grades_imported": len(edsby_child.grades),
+                })
 
         config.last_synced_at = datetime.utcnow()
         config.sync_error_message = None
@@ -111,9 +142,10 @@ async def _sync_edsby_for_parent(parent: Parent, use_mock: bool = False) -> dict
 
         return {
             "status": "success",
-            "message": f"Imported {imported} grades from Edsby",
+            "message": f"Imported {imported_total} grades for {len(matched_children)} children from Edsby",
             "synced_at": config.last_synced_at.isoformat(),
-            "subjects": [g.subject for g in grades],
+            "children": matched_children,
+            "edsby_children_found": [c.name for c in edsby_children],
         }
 
 
@@ -177,7 +209,13 @@ async def test_edsby_connection(current_user: Parent = Depends(get_current_user)
         try:
             with scraper:
                 scraper.login()
-                return {"status": "success", "message": "Edsby connection successful"}
+                # Try to discover children
+                children = scraper.discover_children()
+                return {
+                    "status": "success",
+                    "message": "Edsby connection successful",
+                    "children_found": [c.name for c in children],
+                }
         except EdsbyAuthError as e:
             raise HTTPException(status_code=401, detail=str(e))
         except EdsbyUnavailableError as e:
@@ -234,7 +272,6 @@ async def get_child_gpa(child_id: int, current_user: Parent = Depends(get_curren
             return {"child_id": child_id, "gpa": None, "grade_count": len(grades)}
 
         avg = round(sum(numeric) / len(numeric), 1)
-        # Simple 4.0 scale mapping
         if avg >= 90:
             gpa = 4.0
         elif avg >= 80:

@@ -1,17 +1,18 @@
-"""Edsby grade scraper using requests + BeautifulSoup.
+"""Edsby grade scraper using Playwright with JS-encrypted login.
 
 Edsby uses client-side HMAC-SHA-512 password encryption via JavaScript.
-Since replicating this crypto in Python is impractical, this module provides:
-1. A real scraper that uses Playwright (headless browser) to handle JS encryption
-2. A mock scraper for testing when credentials are locked or Playwright unavailable
+This module uses Playwright (headless browser) to handle the encryption natively.
 
-The scraper logs into Edsby, navigates to the gradebook, and extracts grades.
+Multi-child support:
+- After login, Edsby parent portal shows child selector cards
+- Each child has their own classes, grades, and assignments
+- The scraper discovers all children, then navigates to each child's gradebook
 """
 import re
 import random
 from datetime import datetime, date
 from typing import List, Dict, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -23,6 +24,14 @@ class EdsbyGrade:
     category: Optional[str] = None
 
 
+@dataclass
+class EdsbyChild:
+    """Represents a student/child found in the parent's Edsby account."""
+    name: str
+    nid: str  # Edsby's internal node ID
+    grades: List[EdsbyGrade] = field(default_factory=list)
+
+
 class EdsbyAuthError(Exception):
     pass
 
@@ -32,7 +41,7 @@ class EdsbyUnavailableError(Exception):
 
 
 class EdsbyScraper:
-    """Edsby scraper with Playwright for JS-encrypted login."""
+    """Edsby scraper with Playwright for JS-encrypted login + multi-child support."""
 
     def __init__(self, base_url: str, username: str, password: str):
         self.base_url = base_url.rstrip("/")
@@ -41,6 +50,7 @@ class EdsbyScraper:
         self._page = None
         self._browser = None
         self._context = None
+        self._pw = None
 
     def _init_playwright(self):
         """Initialize Playwright browser."""
@@ -50,7 +60,6 @@ class EdsbyScraper:
             raise EdsbyUnavailableError("Playwright not installed. Run: pip install playwright")
 
         self._pw = sync_playwright().__enter__()
-        # Try to find a chromium executable
         import shutil
         chromium_paths = [
             "/usr/bin/google-chrome",
@@ -92,22 +101,30 @@ class EdsbyScraper:
         except Exception as e:
             raise EdsbyUnavailableError(f"Cannot reach Edsby login page: {e}")
 
-        # Check if we're already on a logged-in page
         if "/login" not in page.url:
             return True
 
-        # Fill and submit form (Playwright executes JS onclick handlers)
         page.fill("input[name='userid']", self.username)
         page.fill("input[name='password']", self.password)
 
-        # Click submit and wait for navigation
+        # Trigger JS encryption and enable disabled fields
+        page.evaluate("""() => {
+            const form = document.querySelector('form');
+            if (typeof doPasswordEncrypt === 'function') {
+                doPasswordEncrypt(form);
+            }
+            ['sauthdata', 'cauthdata', 'extpassword'].forEach(n => {
+                const el = form.querySelector("input[name=" + n + "]");
+                if (el) el.disabled = false;
+            });
+        }""")
+
         try:
             page.click("input[type='submit']")
             page.wait_for_load_state("networkidle")
         except Exception as e:
             raise EdsbyUnavailableError(f"Login submission failed: {e}")
 
-        # Check result
         current_url = page.url
         body_text = page.inner_text("body")
 
@@ -121,131 +138,216 @@ class EdsbyScraper:
 
         return True
 
-    def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
-        """Scrape grades from Edsby. If child_name provided, filter to that student."""
+    def discover_children(self) -> List[EdsbyChild]:
+        """Discover all children linked to this parent account."""
         if not self._page:
             self.login()
 
         page = self._page
-        grades: List[EdsbyGrade] = []
+        children: List[EdsbyChild] = []
 
-        # Edsby gradebook URL varies by district. Common patterns:
-        gradebook_urls = [
-            f"{self.base_url}/core/gradebook",
-            f"{self.base_url}/core/grades",
-            f"{self.base_url}/core/classroom",
-        ]
+        # Strategy 1: Look for student/child cards on home page with data-nid
+        nids = page.evaluate("""() => {
+            const cards = document.querySelectorAll('[data-nid]');
+            return Array.from(cards).map(el => ({
+                nid: el.getAttribute('data-nid'),
+                text: el.innerText.trim().substring(0, 100),
+            })).filter(x => x.nid && x.nid.length > 5);
+        }""")
 
-        found_grades = False
-        for url in gradebook_urls:
-            try:
-                page.goto(url, wait_until="networkidle")
-                content = page.content()
-                if "grade" in content.lower() or "mark" in content.lower() or "%" in content:
-                    found_grades = True
-                    break
-            except Exception:
-                continue
+        for item in nids:
+            text = item['text']
+            nid = item['nid']
+            # Filter out non-student items (look for names, not generic UI elements)
+            if text and len(text) > 1 and not any(bad in text.lower() for bad in ['login', 'password', 'submit', 'cancel', 'edsby']):
+                children.append(EdsbyChild(name=text, nid=nid))
 
-        if not found_grades:
-            # Try to find grade links from the home page
-            page.goto(self.base_url, wait_until="networkidle")
+        # Strategy 2: Look for links to student profiles
+        if not children:
             links = page.query_selector_all("a")
             for link in links:
                 href = link.get_attribute("href") or ""
                 text = link.inner_text().strip()
-                if any(w in text.lower() for w in ["grade", "mark", "report card", "progress"]):
-                    try:
-                        page.goto(href if href.startswith("http") else self.base_url + href)
-                        page.wait_for_load_state("networkidle")
-                        found_grades = True
-                        break
-                    except Exception:
-                        continue
+                # Edsby student links typically contain /p/ or /node/ with student IDs
+                if "/p/" in href or "/node/" in href or "student" in href.lower():
+                    if len(text) > 1 and len(text) < 60 and text not in [c.name for c in children]:
+                        # Extract nid from href if possible
+                        nid_match = re.search(r'/(\d+)$', href) or re.search(r'nid=(\d+)', href)
+                        nid = nid_match.group(1) if nid_match else href
+                        children.append(EdsbyChild(name=text, nid=nid))
 
-        if not found_grades:
-            raise EdsbyUnavailableError("Could not locate gradebook page in Edsby")
+        # Strategy 3: Look for panel/class cards with student photos/names
+        if not children:
+            cards = page.query_selector_all(".card, .panel, .tile, [class*='student'], [class*='child']")
+            for card in cards:
+                text = card.inner_text().strip()
+                if len(text) > 1 and len(text) < 60:
+                    nid = card.get_attribute("data-nid") or card.get_attribute("onclick") or ""
+                    children.append(EdsbyChild(name=text, nid=nid))
 
-        # Extract grade data from the page
-        # Edsby typically renders grades in tables or card layouts
+        return children
+
+    def _navigate_to_child_grades(self, child: EdsbyChild) -> bool:
+        """Navigate to a specific child's gradebook page."""
+        page = self._page
+
+        # Strategy 1: Click the child's card/link by data-nid
+        if child.nid:
+            clicked = page.evaluate(f"""(nid) => {{
+                const el = document.querySelector(`[data-nid="${{nid}}"]`);
+                if (el) {{ el.click(); return true; }}
+                return false;
+            }}""", child.nid)
+            if clicked:
+                page.wait_for_load_state("networkidle")
+                return True
+
+        # Strategy 2: Look for a grades/report card link after clicking child
+        links = page.query_selector_all("a")
+        for link in links:
+            text = link.inner_text().strip().lower()
+            href = link.get_attribute("href") or ""
+            if any(w in text for w in ["grade", "report card", "progress", "mark", "transcript"]):
+                try:
+                    link.click()
+                    page.wait_for_load_state("networkidle")
+                    return True
+                except Exception:
+                    continue
+
+        # Strategy 3: Direct URL construction
+        grade_urls = [
+            f"{self.base_url}/core/node/{child.nid}",
+            f"{self.base_url}/core/p/{child.nid}",
+            f"{self.base_url}/core/grades?student={child.nid}",
+        ]
+        for url in grade_urls:
+            try:
+                page.goto(url, wait_until="networkidle")
+                return True
+            except Exception:
+                continue
+
+        return False
+
+    def scrape_child_grades(self, child: EdsbyChild) -> List[EdsbyGrade]:
+        """Scrape grades for a specific child."""
+        page = self._page
+        grades: List[EdsbyGrade] = []
+
+        # Navigate to child's grades
+        if not self._navigate_to_child_grades(child):
+            return grades
+
         content = page.content()
-
-        # Strategy 1: Look for table rows with grade data
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(content, "html.parser")
 
-        # Try multiple selectors for grade rows
-        selectors = [
-            "tr",  # table rows
-            ".grade-row",
-            ".course-row",
-            ".class-row",
-            "[data-grade]",
-        ]
+        # Edsby gradebook structures vary. Try multiple extraction strategies:
 
-        for selector in selectors:
-            rows = soup.select(selector)
-            for row in rows:
-                cells = row.find_all(["td", "div"])
-                if not cells:
-                    continue
+        # Strategy A: Look for table rows with subject + grade
+        for row in soup.find_all("tr"):
+            cells = row.find_all(["td", "th"])
+            if len(cells) < 2:
+                continue
 
-                # Try to extract subject and grade
-                subject = None
-                grade_val = None
-                for cell in cells:
-                    text = cell.get_text(strip=True)
-                    # Look for percentage grades
-                    if re.match(r"^\d{1,3}\s*%$", text) or re.match(r"^\d{1,3}$", text):
-                        grade_val = text.replace("%", "").strip()
-                    elif re.match(r"^[A-F][+-]?$", text):
-                        grade_val = text
-                    elif len(text) > 2 and not text.replace(".", "").replace("-", "").isdigit():
-                        if not subject:
-                            subject = text
+            subject = None
+            grade_val = None
+            for cell in cells:
+                text = cell.get_text(strip=True)
+                # Grade patterns
+                if re.match(r"^\d{1,3}\s*%$", text) or re.match(r"^\d{1,3}$", text):
+                    grade_val = text.replace("%", "").strip()
+                elif re.match(r"^[A-F][+-]?$", text):
+                    grade_val = text
+                elif len(text) > 2 and len(text) < 60 and not text.replace(".", "").replace("-", "").isdigit():
+                    if not subject:
+                        subject = text
 
-                if subject and grade_val:
+            if subject and grade_val:
+                grades.append(EdsbyGrade(
+                    subject=subject,
+                    grade=grade_val,
+                    grade_date=date.today(),
+                ))
+
+        # Strategy B: Look for div cards with class names and grades
+        if not grades:
+            for div in soup.find_all("div"):
+                text = div.get_text(strip=True)
+                # Look for patterns like "Math\n85%" within a single div
+                match = re.search(r"([A-Za-z][A-Za-z\s]{2,40})\s*[:\-]?\s*(\d{1,3})\s*%", text)
+                if match:
                     grades.append(EdsbyGrade(
-                        subject=subject,
-                        grade=grade_val,
+                        subject=match.group(1).strip(),
+                        grade=match.group(2).strip(),
                         grade_date=date.today(),
                     ))
 
-        # Strategy 2: Regex-based extraction from page text
+        # Strategy C: Regex on full page text
         if not grades:
             text = soup.get_text()
-            # Look for patterns like "Math 85%" or "Science: 78"
             patterns = [
-                r"([A-Za-z\s]+?)\s*[:\-]?\s*(\d{1,3})\s*%",
-                r"([A-Za-z\s]+?)\s*[:\-]?\s*([A-F][+-]?)\b",
+                r"([A-Za-z][A-Za-z\s]{2,30})\s*[:\-]?\s*(\d{1,3})\s*%",
+                r"([A-Za-z][A-Za-z\s]{2,30})\s*[:\-]?\s*([A-F][+-]?)\b",
             ]
+            seen = set()
             for pattern in patterns:
                 for match in re.finditer(pattern, text):
                     subject = match.group(1).strip()
                     grade_val = match.group(2).strip()
-                    if len(subject) > 2 and len(subject) < 60:
+                    key = subject.lower()
+                    if key not in seen and len(subject) > 2 and len(subject) < 50:
+                        seen.add(key)
                         grades.append(EdsbyGrade(
                             subject=subject,
                             grade=grade_val,
                             grade_date=date.today(),
                         ))
 
-        # Deduplicate by subject
+        # Deduplicate
         seen = set()
-        unique_grades = []
+        unique = []
         for g in grades:
             key = g.subject.lower()
             if key not in seen:
                 seen.add(key)
-                unique_grades.append(g)
+                unique.append(g)
 
-        return unique_grades
+        return unique
+
+    def scrape_all_children_grades(self) -> List[EdsbyChild]:
+        """Discover all children and scrape grades for each."""
+        children = self.discover_children()
+        for child in children:
+            child.grades = self.scrape_child_grades(child)
+            # Go back to home page for next child
+            self._page.goto(self.base_url, wait_until="networkidle")
+        return children
+
+    def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
+        """Scrape grades. If child_name specified, return only that child's grades."""
+        children = self.scrape_all_children_grades()
+
+        if child_name and children:
+            # Find matching child
+            child_name_lower = child_name.lower()
+            for child in children:
+                if child_name_lower in child.name.lower():
+                    return child.grades
+            # If no exact match, return first child's grades with a warning
+            return children[0].grades if children else []
+
+        # Return all grades flattened
+        all_grades = []
+        for child in children:
+            all_grades.extend(child.grades)
+        return all_grades
 
     def close(self):
-        """Close browser resources."""
         if self._browser:
             self._browser.close()
-        if hasattr(self, "_pw"):
+        if self._pw:
             self._pw.__exit__(None, None, None)
 
     def __enter__(self):
@@ -269,8 +371,14 @@ class MockEdsbyScraper:
             raise EdsbyAuthError("Invalid credentials (mock)")
         return True
 
-    def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
-        random.seed(self._seed)
+    def discover_children(self) -> List[EdsbyChild]:
+        return [
+            EdsbyChild(name="Rowen Toshack", nid="mock_rowen", grades=[]),
+            EdsbyChild(name="Alex Toshack", nid="mock_alex", grades=[]),
+        ]
+
+    def scrape_child_grades(self, child: EdsbyChild) -> List[EdsbyGrade]:
+        random.seed(self._seed + hash(child.name))
         subjects = {
             "Math": {"base": 78, "variance": 12},
             "Science": {"base": 82, "variance": 10},
@@ -289,6 +397,20 @@ class MockEdsbyScraper:
                 grade_date=date.today(),
             ))
         return grades
+
+    def scrape_all_children_grades(self) -> List[EdsbyChild]:
+        children = self.discover_children()
+        for child in children:
+            child.grades = self.scrape_child_grades(child)
+        return children
+
+    def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
+        children = self.scrape_all_children_grades()
+        if child_name:
+            for child in children:
+                if child_name.lower() in child.name.lower():
+                    return child.grades
+        return [g for c in children for g in c.grades]
 
     def close(self):
         pass

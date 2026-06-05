@@ -193,7 +193,11 @@
         const resp = await fetch('/api/grades/test-edsby', { method: 'POST' });
         const data = await resp.json();
         if (resp.ok) {
-          resultDiv.innerHTML = '<div class="bg-emerald-500/10 text-emerald-400 rounded-lg p-3"><i class="fas fa-check-circle mr-2"></i>Connection successful! Edsby credentials are valid.</div>';
+          let childrenHtml = '';
+          if (data.children_found && data.children_found.length > 0) {
+            childrenHtml = '<div class="mt-2 text-sm text-emerald-300"><i class="fas fa-users mr-1"></i>Children found: ' + data.children_found.join(', ') + '</div>';
+          }
+          resultDiv.innerHTML = '<div class="bg-emerald-500/10 text-emerald-400 rounded-lg p-3"><i class="fas fa-check-circle mr-2"></i>Connection successful! Edsby credentials are valid.' + childrenHtml + '</div>';
         } else {
           resultDiv.innerHTML = '<div class="bg-rose-500/10 text-rose-400 rounded-lg p-3"><i class="fas fa-times-circle mr-2"></i>' + (data.detail || 'Connection failed') + '</div>';
         }
@@ -213,8 +217,16 @@
         const resp = await fetch('/api/grades/sync-mock', { method: 'POST' });
         const data = await resp.json();
         if (resp.ok) {
-          resultDiv.innerHTML = '<div class="bg-emerald-500/10 text-emerald-400 rounded-lg p-3"><i class="fas fa-check-circle mr-2"></i>' + data.message + '</div>';
-          setTimeout(() => window.location.reload(), 1500);
+          let childrenHtml = '';
+          if (data.children && data.children.length > 0) {
+            childrenHtml = '<div class="mt-2 text-sm text-emerald-300">';
+            data.children.forEach(c => {
+              childrenHtml += '<div><i class="fas fa-user mr-1"></i>' + c.edu_guard_name + ': ' + c.grades_imported + ' grades</div>';
+            });
+            childrenHtml += '</div>';
+          }
+          resultDiv.innerHTML = '<div class="bg-emerald-500/10 text-emerald-400 rounded-lg p-3"><i class="fas fa-check-circle mr-2"></i>' + data.message + childrenHtml + '</div>';
+          setTimeout(() => window.location.reload(), 2000);
         } else {
           resultDiv.innerHTML = '<div class="bg-rose-500/10 text-rose-400 rounded-lg p-3"><i class="fas fa-times-circle mr-2"></i>' + (data.detail || 'Sync failed') + '</div>';
         }
