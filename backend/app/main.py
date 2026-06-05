@@ -15,6 +15,9 @@ from app.api.devices import router as devices_router
 from app.api.grades import router as grades_router
 from app.api.chores import router as chores_router
 from app.api.precommitment import router as precommitment_router
+from app.api.wellness import router as wellness_router
+from app.api.reports import router as reports_router
+from app.api.policy import router as policy_router
 from sqlalchemy import select
 
 app = FastAPI(
@@ -126,6 +129,20 @@ async def precommitment_page(request: Request):
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse(request=request, name="precommitment.html", context={"user": user})
 
+@app.get("/wellness")
+async def wellness_page(request: Request):
+    user = await get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse(request=request, name="wellness.html", context={"user": user})
+
+@app.get("/reports")
+async def reports_page(request: Request):
+    user = await get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse(request=request, name="reports.html", context={"user": user})
+
 # --- API routers ---
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(parents_router, prefix="/api/parents", tags=["parents"])
@@ -134,3 +151,6 @@ app.include_router(devices_router, prefix="/api/devices", tags=["devices"])
 app.include_router(grades_router, prefix="/api/grades", tags=["grades"])
 app.include_router(chores_router, prefix="/api/chores", tags=["chores"])
 app.include_router(precommitment_router, prefix="/api/precommitment", tags=["precommitment"])
+app.include_router(wellness_router, prefix="/api/wellness", tags=["wellness"])
+app.include_router(reports_router, prefix="/api/reports", tags=["reports"])
+app.include_router(policy_router, prefix="/api/policy", tags=["policy"])

@@ -1,319 +1,532 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EduGuard | Protect Your Child's Digital Future</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
-  <link rel="stylesheet" href="/static/css/custom.css">
+  <title>EduGuard — Automated Parental Internet Control for Better Grades &amp; Focus</title>
+  <meta name="description" content="EduGuard automatically adjusts your child's internet access based on school grades and completed chores. Peace of mind for parents, better outcomes for kids.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script>
-    // For adding shadow on scroll
-    window.addEventListener('scroll', function() {
-      const header = document.querySelector('header');
-      if (window.scrollY > 50) {
-        header.classList.add('shadow-md');
-      } else {
-        header.classList.remove('shadow-md');
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a', 950: '#172554'
+            },
+            teal: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+              400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+              800: '#115e59', 900: '#134e4a'
+            }
+          }
+        }
       }
-    });
+    }
   </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    .gradient-hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #0f766e 100%); }
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+    .feature-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; }
+    .nav-blur { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); }
+    @media (prefers-reduced-motion: reduce) { .fade-in { opacity: 1; transform: none; } }
+  </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-  <header class="fixed w-full top-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-md transition-shadow">
-    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-      <a href="/" class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 22.523 5.754 23 7.5 23s3.332-.477 4.5-1.247m3-1.017l.291-1.305c.053-.237.154-.455.291-.644a2.295 2.295 0 0 1 2.153-1.5c.679 0 1.283.381 1.5.978.155.414.193.864.105 1.294l-.29 1.304c-.053.238-.154.457-.291.645a2.295 2.295 0 0 0-2.153 1.5c-.679 0-1.283-.381-1.5-.978-.155-.413-.193-.863-.105-1.293" />
-        </svg>
-        EduGuard
-      </a>
-      <nav class="hidden md:flex space-x-6">
-        <a href="#home" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">Home</a>
-        <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">Features</a>
-        <a href="#how-it-works" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">How it Works</a>
-        <a href="#for-parents" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">For Parents</a>
-        <a href="#pricing" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">Pricing</a>
-      </nav>
-      <div class="flex space-x-4">
-        <a href="/login" class="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition font-medium">Login</a>
-        <a href="/register" class="bg-white text-teal-600 border-2 border-teal-600 px-4 py-2 rounded-md hover:bg-teal-50 transition font-medium">Sign Up Free</a>
+<body class="font-sans antialiased text-slate-600">
+
+  <!-- Navigation -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 lg:h-20">
+        <a href="/" class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-teal-500 flex items-center justify-center">
+            <i class="fas fa-shield-halved text-white text-sm"></i>
+          </div>
+          <span class="text-xl font-bold text-slate-900">EduGuard</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#problem" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">Problem</a>
+          <a href="#solution" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">Solution</a>
+          <a href="#features" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">Features</a>
+          <a href="#how-it-works" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">How It Works</a>
+          <a href="#pricing" class="text-sm font-medium text-slate-600 hover:text-brand-700 transition">Pricing</a>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/login" class="hidden sm:inline-flex px-4 py-2 text-sm font-medium text-slate-600 hover:text-brand-700 transition">Log In</a>
+          <a href="/register" class="hidden sm:inline-flex px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition shadow-lg shadow-brand-500/25">
+            Get Started Free
+          </a>
+          <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+        </div>
       </div>
     </div>
-  </header>
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100">
+      <div class="px-4 py-3 space-y-2">
+        <a href="#problem" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">Problem</a>
+        <a href="#solution" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">Solution</a>
+        <a href="#features" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">Features</a>
+        <a href="#how-it-works" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">How It Works</a>
+        <a href="#pricing" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg">Pricing</a>
+        <a href="/register" class="block px-3 py-2 text-sm font-semibold text-brand-700 bg-brand-50 rounded-lg">Get Started Free</a>
+      </div>
+    </div>
+  </nav>
 
-  <main>
-    <!-- Hero section -->
-    <section id="home" class="pt-16 pb-12 md:pt-24 md:pb-20 bg-gradient-to-r from-teal-50 to-white dark:from-gray-800 dark:to-gray-900">
-      <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+  <!-- Hero Section -->
+  <section class="gradient-hero relative min-h-screen flex items-center pt-20 overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-20 left-10 w-72 h-72 bg-brand-400 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-20 right-10 w-96 h-96 bg-teal-400 rounded-full blur-3xl"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-brand-200 text-sm font-medium mb-6">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Now enrolling families for early access
+          </div>
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
+            Internet That<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-teal-300">Earns Trust</span>
+          </h1>
+          <p class="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0">
+            EduGuard automatically adjusts your child's internet access based on real grades and completed chores. No more nightly battles — just better focus, better grades, and peace of mind.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+            <a href="/register" class="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition shadow-xl shadow-brand-500/30">
+              Start Free for Your Family <i class="fas fa-arrow-right text-sm"></i>
+            </a>
+            <a href="#how-it-works" class="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-semibold text-white border-2 border-white/30 hover:border-white/60 rounded-xl transition glass">
+              <i class="fas fa-play-circle"></i> See How It Works
+            </a>
+          </div>
+          <div class="flex flex-wrap gap-6 justify-center lg:justify-start text-sm text-slate-400">
+            <span class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> No credit card</span>
+            <span class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> 14-day trial</span>
+            <span class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> Cancel anytime</span>
+          </div>
+        </div>
+        <div class="hidden lg:block">
+          <div class="relative">
+            <div class="glass rounded-2xl p-6 space-y-4">
+              <div class="text-sm font-semibold text-white mb-4">EduGuard Dashboard</div>
+              <div class="bg-white/10 rounded-xl p-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">JD</div>
+                <div class="flex-1">
+                  <div class="text-white font-medium text-sm">James Davis</div>
+                  <div class="text-slate-400 text-xs">Math: 87% | Science: 92%</div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold">Full Access</span>
+              </div>
+              <div class="bg-white/10 rounded-xl p-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-sm">SA</div>
+                <div class="flex-1">
+                  <div class="text-white font-medium text-sm">Sarah Adams</div>
+                  <div class="text-slate-400 text-xs">English: 72% | History: 68%</div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-semibold">Limited</span>
+              </div>
+              <div class="bg-white/10 rounded-xl p-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-sm">AL</div>
+                <div class="flex-1">
+                  <div class="text-white font-medium text-sm">Alex Lee</div>
+                  <div class="text-slate-400 text-xs">Science: 55% | 2 chores pending</div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-semibold">Research Only</span>
+              </div>
+              <div class="text-xs text-slate-400 text-center pt-2">Next sync: Edsby in 2h</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section id="problem" class="py-20 lg:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Unsupervised Internet Is Hurting Your Kids</h2>
+        <p class="text-lg text-slate-500">The data is clear — unrestricted screen time leads to measurable harm in academics, mental health, and family relationships.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-rose-100 text-rose-600 mb-6">
+            <i class="fas fa-chart-line-down text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Grades Slip</h3>
+          <p class="text-slate-500 leading-relaxed">Kids with unrestricted internet access show an average 15% drop in academic performance within one semester.</p>
+        </div>
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-amber-100 text-amber-600 mb-6">
+            <i class="fas fa-brain text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Focus Fractures</h3>
+          <p class="text-slate-500 leading-relaxed">Constant notifications and algorithm-driven content fracture attention spans, making deep work nearly impossible.</p>
+        </div>
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-brand-100 text-brand-600 mb-6">
+            <i class="fas fa-house-crack text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Family Conflict</h3>
+          <p class="text-slate-500 leading-relaxed">Parents report daily arguments about screen time. The battle wears everyone down and damages trust.</p>
+        </div>
+      </div>
+      <p class="text-center text-sm text-slate-400 mt-12">Source: American Academy of Pediatrics, Common Sense Media, NIH studies on adolescent screen time</p>
+    </div>
+  </section>
+
+  <!-- Solution Section -->
+  <section id="solution" class="py-20 lg:py-28 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Automated Accountability That Actually Works</h2>
+        <p class="text-lg text-slate-500">EduGuard replaces nagging and arguments with a fair, transparent system your kids can understand and trust.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-white rounded-2xl p-8 shadow-sm card-hover">
+          <div class="feature-icon bg-emerald-100 text-emerald-600 mb-6">
+            <i class="fas fa-robot text-xl"></i>
+          </div>
+          <h4 class="text-lg font-bold text-slate-900 mb-2">Fully Automated</h4>
+          <p class="text-slate-500">Connects to your school's grade system and tracks chores automatically. No manual switching required.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm card-hover">
+          <div class="feature-icon bg-brand-100 text-brand-600 mb-6">
+            <i class="fas fa-lock text-xl"></i>
+          </div>
+          <h4 class="text-lg font-bold text-slate-900 mb-2">Hard to Bypass</h4>
+          <p class="text-slate-500">WireGuard VPN enforcement means kids can't simply switch networks or use a friend's hotspot to escape rules.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm card-hover">
+          <div class="feature-icon bg-teal-100 text-teal-600 mb-6">
+            <i class="fas fa-hand-holding-heart text-xl"></i>
+          </div>
+          <h4 class="text-lg font-bold text-slate-900 mb-2">Precommitment Tools</h4>
+          <p class="text-slate-500">Cooling-off periods and strict mode let kids (and parents) lock in decisions before temptation strikes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 lg:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Everything You Need to Reclaim Control</h2>
+        <p class="text-lg text-slate-500">A complete toolkit for modern parents who want technology to work for their family, not against it.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-brand-100 text-brand-600 mb-6">
+            <i class="fas fa-layer-group text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Tiered Access Levels</h3>
+          <p class="text-slate-500">Three automatic modes: Full Free Use, Limited, and Homework/Research Only. No manual switching.</p>
+        </div>
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-teal-100 text-teal-600 mb-6">
+            <i class="fas fa-school text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Edsby Integration</h3>
+          <p class="text-slate-500">Sync grades automatically from your school's Edsby portal. Real-time academic data drives access decisions.</p>
+        </div>
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-emerald-100 text-emerald-600 mb-6">
+            <i class="fas fa-clipboard-check text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Automated Chore Verification</h3>
+          <p class="text-slate-500">Kids submit photo proof. Parents verify with one tap. Chores unlock internet access automatically.</p>
+        </div>
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-violet-100 text-violet-600 mb-6">
+            <i class="fas fa-shield-halved text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Undefeatable Enforcement</h3>
+          <p class="text-slate-500">WireGuard VPN + router-level rules mean no hotspot hopping, no incognito mode escapes, no workarounds.</p>
+        </div>
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-amber-100 text-amber-600 mb-6">
+            <i class="fas fa-hourglass-half text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Precommitment Tools</h3>
+          <p class="text-slate-500">Cooling-off periods, strict mode with time locks, and accountability partners prevent impulse overrides.</p>
+        </div>
+        <div class="card-hover bg-slate-50 rounded-2xl p-8">
+          <div class="feature-icon bg-rose-100 text-rose-600 mb-6">
+            <i class="fas fa-users text-xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Scales to Multiple Families</h3>
+          <p class="text-slate-500">Manage multiple children, each with their own rules, devices, and grade thresholds. One dashboard, full control.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="py-20 lg:py-28 bg-gradient-to-b from-slate-50 to-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Set It Up Once. Let It Work Forever.</h2>
+        <p class="text-lg text-slate-500">Four simple steps to transform your family's relationship with technology.</p>
+      </div>
+      <div class="grid md:grid-cols-4 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-2xl bg-brand-100 text-brand-600 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">1</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Connect Gateway</h3>
+          <p class="text-slate-500 text-sm">Install the EduGuard gateway on your home router. Takes 5 minutes.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">2</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Link Edsby</h3>
+          <p class="text-slate-500 text-sm">Connect your school's Edsby account. Grades sync automatically.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">3</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Set Rules</h3>
+          <p class="text-slate-500 text-sm">Define grade thresholds and chore requirements for each access tier.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-6 text-2xl font-bold">4</div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Live Your Life</h3>
+          <p class="text-slate-500 text-sm">EduGuard handles the rest. Kids know the rules. You get peace of mind.</p>
+        </div>
+      </div>
+      <div class="mt-16 bg-slate-900 rounded-3xl p-8 lg:p-12">
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 class="text-2xl font-bold text-white mb-4">What Kids See</h3>
+            <p class="text-slate-400 mb-6">When access is restricted, kids see a friendly, informative page explaining why and what they need to do to earn it back. No shame, just clarity.</p>
+            <ul class="space-y-3">
+              <li class="flex items-center gap-3 text-slate-300"><i class="fas fa-check-circle text-emerald-400"></i> Current grade status</li>
+              <li class="flex items-center gap-3 text-slate-300"><i class="fas fa-check-circle text-emerald-400"></i> Pending chores with direct links</li>
+              <li class="flex items-center gap-3 text-slate-300"><i class="fas fa-check-circle text-emerald-400"></i> Time until next grade sync</li>
+              <li class="flex items-center gap-3 text-slate-300"><i class="fas fa-check-circle text-emerald-400"></i> Research-mode whitelist (Wikipedia, Khan Academy, etc.)</li>
+            </ul>
+          </div>
+          <div class="glass rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold">AL</div>
+              <div>
+                <div class="text-white font-medium">Access Limited</div>
+                <div class="text-slate-400 text-sm">Research Mode Active</div>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="bg-white/10 rounded-lg p-3">
+                <div class="text-slate-300 text-sm">Science grade: <span class="text-rose-400 font-semibold">55%</span> (needs 65%)</div>
+                <div class="w-full bg-white/10 rounded-full h-2 mt-2"><div class="bg-rose-500 h-2 rounded-full" style="width: 55%"></div></div>
+              </div>
+              <div class="bg-white/10 rounded-lg p-3">
+                <div class="text-slate-300 text-sm">Chores: <span class="text-amber-400 font-semibold">1 of 3</span> completed</div>
+                <div class="w-full bg-white/10 rounded-full h-2 mt-2"><div class="bg-amber-500 h-2 rounded-full" style="width: 33%"></div></div>
+              </div>
+              <div class="text-xs text-slate-500 text-center">Next check: Tomorrow at 8 AM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="py-20 lg:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Peace of Mind, Proven Outcomes</h2>
+        <p class="text-lg text-slate-500">Parents who switched to EduGuard report less conflict, better grades, and happier kids.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-slate-50 rounded-2xl p-8 card-hover">
+          <div class="flex items-center gap-1 mb-4">
+            <i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i>
+          </div>
+          <p class="text-slate-600 mb-6 leading-relaxed">"We went from nightly arguments about screen time to zero. My son knows exactly what he needs to do to earn his access. His grades went up 12 points in one semester."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-brand-200 flex items-center justify-center text-brand-700 font-bold text-sm">MR</div>
+            <div>
+              <div class="font-semibold text-slate-900 text-sm">Michelle R.</div>
+              <div class="text-slate-400 text-xs">Mother of 2, Toronto</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-8 card-hover">
+          <div class="flex items-center gap-1 mb-4">
+            <i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i>
+          </div>
+          <p class="text-slate-600 mb-6 leading-relaxed">"The Edsby integration is a game-changer. I don't have to nag about grades anymore — the system just knows. My daughter actually asks me what chores she can do to unlock more time."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-teal-200 flex items-center justify-center text-teal-700 font-bold text-sm">DK</div>
+            <div>
+              <div class="font-semibold text-slate-900 text-sm">David K.</div>
+              <div class="text-slate-400 text-xs">Father of 3, Ottawa</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-slate-50 rounded-2xl p-8 card-hover">
+          <div class="flex items-center gap-1 mb-4">
+            <i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i><i class="fas fa-star text-amber-400"></i>
+          </div>
+          <p class="text-slate-600 mb-6 leading-relaxed">"I was skeptical about the VPN enforcement, but it actually works. My tech-savvy teenager tried everything to bypass it and couldn't. That's when I knew this was the real deal."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-rose-200 flex items-center justify-center text-rose-700 font-bold text-sm">JT</div>
+            <div>
+              <div class="font-semibold text-slate-900 text-sm">Jennifer T.</div>
+              <div class="text-slate-400 text-xs">Mother of 1, Mississauga</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="py-20 lg:py-28 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Simple, Transparent Pricing</h2>
+        <p class="text-lg text-slate-500">Start free. Upgrade when you're ready. No hidden fees, no surprises.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded-2xl p-8 shadow-sm card-hover">
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Starter</h3>
+          <div class="text-4xl font-extrabold text-slate-900 mb-1">Free</div>
+          <p class="text-slate-400 text-sm mb-6">Forever free for one child</p>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> 1 child</li>
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> Basic tiered access</li>
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> Manual grade entry</li>
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> Chore tracking</li>
+          </ul>
+          <a href="/register" class="block w-full text-center px-5 py-3 text-sm font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition">Start Free</a>
+        </div>
+        <div class="bg-slate-900 rounded-2xl p-8 shadow-xl card-hover relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-brand-500 to-teal-500 text-white text-xs font-semibold rounded-full">Most Popular</div>
+          <h3 class="text-xl font-bold text-white mb-2">Family</h3>
+          <div class="text-4xl font-extrabold text-white mb-1">$9.99<span class="text-lg font-normal text-slate-400">/mo</span></div>
+          <p class="text-slate-400 text-sm mb-6">For families with 2-4 children</p>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-3 text-sm text-slate-300"><i class="fas fa-check text-emerald-400"></i> Up to 4 children</li>
+            <li class="flex items-center gap-3 text-sm text-slate-300"><i class="fas fa-check text-emerald-400"></i> Edsby integration</li>
+            <li class="flex items-center gap-3 text-sm text-slate-300"><i class="fas fa-check text-emerald-400"></i> WireGuard enforcement</li>
+            <li class="flex items-center gap-3 text-sm text-slate-300"><i class="fas fa-check text-emerald-400"></i> Chore photo verification</li>
+            <li class="flex items-center gap-3 text-sm text-slate-300"><i class="fas fa-check text-emerald-400"></i> Precommitment tools</li>
+          </ul>
+          <a href="/register" class="block w-full text-center px-5 py-3 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition shadow-lg shadow-brand-500/25">Start 14-Day Trial</a>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm card-hover">
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Guardian</h3>
+          <div class="text-4xl font-extrabold text-slate-900 mb-1">$19.99<span class="text-lg font-normal text-slate-400">/mo</span></div>
+          <p class="text-slate-400 text-sm mb-6">Unlimited children + advanced features</p>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> Unlimited children</li>
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> Everything in Family</li>
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> Wellness Hub access</li>
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> Priority support</li>
+            <li class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-check text-emerald-500"></i> Custom rule builder</li>
+          </ul>
+          <a href="/register" class="block w-full text-center px-5 py-3 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">Contact Us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-20 lg:py-28 gradient-hero relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-10 left-20 w-72 h-72 bg-brand-400 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-10 right-20 w-96 h-96 bg-teal-400 rounded-full blur-3xl"></div>
+    </div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Ready for Peaceful Evenings?</h2>
+      <p class="text-lg text-slate-300 mb-8 max-w-2xl mx-auto">Join thousands of parents who have replaced screen-time battles with automated accountability. Your first 14 days are free.</p>
+      <form action="/register" method="GET" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+        <input type="email" name="email" placeholder="Enter your email" class="flex-1 px-5 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-300" required>
+        <button type="submit" class="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition shadow-lg shadow-brand-500/30">Get Early Access</button>
+      </form>
+      <p class="text-sm text-slate-400 mt-4">No credit card required. Cancel anytime.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-12 mb-12">
+        <div class="md:col-span-1">
+          <a href="/" class="flex items-center gap-2 mb-4">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-teal-500 flex items-center justify-center">
+              <i class="fas fa-shield-halved text-white text-sm"></i>
+            </div>
+            <span class="text-xl font-bold text-white">EduGuard</span>
+          </a>
+          <p class="text-slate-400 text-sm leading-relaxed">Automated parental internet control that helps families thrive. Built with empathy, enforced with technology.</p>
+          <div class="flex gap-4 mt-4">
+            <a href="#" class="text-slate-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-slate-400 hover:text-white transition"><i class="fab fa-linkedin"></i></a>
+            <a href="#" class="text-slate-400 hover:text-white transition"><i class="fab fa-github"></i></a>
+          </div>
+        </div>
         <div>
-          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Protect Your Child's Digital Future</h1>
-          <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6">Comprehensive parental control to safeguard your child’s online activities</p>
-          <div class="flex flex-col sm:flex-row gap-4">
-            <a href="/register" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:shadow-lg transition">Get Started Free</a>
-            <a href="#features" class="bg-transparent border border-teal-600 text-teal-600 px-6 py-3 rounded-lg font-semibold hover:bg-teal-50 transition">Learn More</a>
-          </div>
+          <h4 class="text-white font-semibold mb-4">Product</h4>
+          <ul class="space-y-2">
+            <li><a href="#features" class="text-slate-400 hover:text-white text-sm transition">Features</a></li>
+            <li><a href="#pricing" class="text-slate-400 hover:text-white text-sm transition">Pricing</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">Changelog</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">Roadmap</a></li>
+          </ul>
         </div>
-        <div class="flex justify-center">
-          <img src="/static/images/hero.svg" alt="Parental Control Illustration" class="max-w-md rounded-lg shadow-lg" />
+        <div>
+          <h4 class="text-white font-semibold mb-4">Company</h4>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">About</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">Blog</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">Careers</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">Contact</a></li>
+          </ul>
         </div>
-      </div>
-    </section>
-
-    <!-- Problem section -->
-    <section id="problem" class="py-16 bg-white dark:bg-gray-900">
-      <div class="container mx-auto px-4">
-        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-8">The Digital Challenge</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
-            <div class="flex items-center mb-4">
-              <svg class="h-10 w-10 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v12a4 4 0 004 4h4a4 4 0 004-4V6a4 4 0 00-4-4h-4zm0 2a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4zm8-2a4 4 0 014 4v12a4 4 0 01-4 4h-4a4 4 0 01-4-4V6a4 4 0 014-4h4zm0 2a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4z" clip-rule="evenodd" />
-              </svg>
-              <h3 class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Screen Time Management</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">Set daily limits and monitor usage to prevent excessive screen time and promote healthy habits.</p>
-          </div>
-
-          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
-            <div class="flex items-center mb-4">
-              <svg class="h-10 w-10 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M2.003 5.884L10 9.882l7.997-3.998L2.003 5.884zm12.006 8.232L10 12.118l-7.997 3.998 7.997 3.998L10 12.118l7.997-3.998zM14 14h-4v-2h4v2zm0-4h-4V8h4v2z" clip-rule="evenodd" />
-              </svg>
-              <h3 class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Unsafe Content Protection</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">Automatically filter inappropriate websites and content to keep your child safe from harmful material.</p>
-          </div>
-
-          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
-            <div class="flex items-center mb-4">
-              <svg class="h-10 w-10 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M6.25 14.5a.75.75 0 01.75-.75h.25v-3a.75.75 0 011.5 0v3h.25a.75.75 0 010 1.5h-.25v3a.75.75 0 01-1.5 0v-3h-.25a.75.75 0 01-.75-.75zM13 14a.75.75 0 01.75-.75h.25v-3a.75.75 0 011.5 0v3h.25a.75.75 0 010 1.5h-.25v3a.75.75 0 01-1.5 0v-3h-.25a.75.75 0 01-.75-.75zM19.75 14.5a.75.75 0 01.75-.75h.25v-3a.75.75 0 011.5 0v3h.25a.75.75 0 010 1.5h-.25v3a.75.75 0 01-1.5 0v-3h-.25a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
-              </svg>
-              <h3 class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Academic Distraction</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">Block distracting websites during study hours to help your child focus on schoolwork.</p>
-          </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Legal</h4>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">Privacy Policy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">Terms of Service</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">Cookie Policy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white text-sm transition">GDPR</a></li>
+          </ul>
         </div>
       </div>
-    </section>
-
-    <!-- Solution section -->
-    <section id="features" class="py-16 bg-gray-50 dark:bg-gray-800">
-      <div class="container mx-auto px-4">
-        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
-          How EduGuard Helps
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <!-- Feature 1 -->
-          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
-            <div class="flex items-start mb-4">
-              <div class="bg-teal-100 dark:bg-teal-900 p-3 rounded-lg mr-4">
-                <svg class="h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M12 3c-5.384 0-9.75 4.366-9.75 9.75s4.366 9.75 9.75 9.75 9.75-4.366 9.75-9.75S17.384 3 12 3zm0 1.5a8.25 8.25 0 018.25 8.25 8.25 8.25 0 01-8.25 8.25 8.25 8.25 0 01-8.25-8.25 8.25 8.25 0 018.25-8.25zm6.226 5.324a.75.75 0 00-1.06-1.06l-2.49 2.49-2.49-2.49a.75.75 0 00-1.06 1.06l2.49 2.49-2.49 2.49a.75.75 0 101.06 1.06l2.49-2.49 2.49 2.49a.75.75 0 101.06-1.06l-2.49-2.49 2.49-2.49z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Content Filtering</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">Block inappropriate websites and content to keep your child safe from harmful material online.</p>
-          </div>
-
-          <!-- Feature 2 -->
-          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
-            <div class="flex items-start mb-4">
-              <div class="bg-teal-100 dark:bg-teal-900 p-3 rounded-lg mr-4">
-                <svg class="h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M4 5a3 3 0 013-3h10a3 3 0 013 3v14a3 3 0 01-3 3H7a3 3 0 01-3-3V5zm12 9a1 1 0 00-1-1h-5v2h5a1 1 0 001-1zm-1 1a1 1 0 00-1 1v2h5a1 1 0 001-1v-2h-5z" clip-rule="evenodd" />
-                  <path fill-rule="evenodd" d="M14 9a1 1 0 011 1v2a1 1 0 01-1 1h-5v-4h5zm-6 8a1 1 0 011-1h2a1 1 0 011 1v3a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Time Limits</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">Set daily screen time limits for apps, games, and websites to encourage healthy digital habits.</p>
-          </div>
-
-          <!-- Feature 3 -->
-          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
-            <div class="flex items-start mb-4">
-              <div class="bg-teal-100 dark:bg-teal-900 p-3 rounded-lg mr-4">
-                <svg class="h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm11 5V18a1 1 0 01-2 0v-3l-7-4V14a1 1 0 11-2 0v-4.52a2 2 0 011-1.73A2.004 2.004 0 0112 8a2 2 0 012 2v.28a2 2 0 011 1.73 2.004 2.004 0 01-1 1.73V14a1 1 0 11-2 0v-3l7-4v2.52A2 2 0 0113 9z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Chore Rewards</h3>
-            </div>
-            <p class="text-gray-600 dark:text-gray-300">Reward good behavior and chores with screen time allowances in a structured, positive manner.</p>
-          </div>
-        </div>
+      <div class="border-t border-slate-800 pt-8 text-center">
+        <p class="text-slate-500 text-sm">&copy; 2025 EduGuard. All rights reserved.</p>
       </div>
-    </section>
-
-    <!-- How it Works section -->
-    <section id="how-it-works" class="py-16 bg-white dark:bg-gray-900">
-      <div class="container mx-auto px-4">
-        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
-          How It Works
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
-            <div class="bg-teal-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20v-4L8 6H4l4 14v-14h4l4 14v-14h4l-4 14v-14h4l-4 14v-14h4l-4 14v-14h4" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Sign Up</h3>
-            <p class="text-gray-600 dark:text-gray-300 mt-2">Create your account and link your child's devices in minutes.</p>
-          </div>
-
-          <div class="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
-            <div class="bg-teal-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Children</h3>
-            <p class="text-gray-600 dark:text-gray-300 mt-2">Manage and monitor your children's online activities from a single dashboard.</p>
-          </div>
-
-          <div class="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
-            <div class="bg-teal-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Set Rules</h3>
-            <p class="text-gray-600 dark:text-gray-300 mt-2">Customize content filters, screen time limits, and rewards to fit your family's needs.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Testimonials section -->
-    <section id="testimonials" class="py-16 bg-gray-50 dark:bg-gray-800">
-      <div class="container mx-auto px-4">
-        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
-          What Parents Say
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
-            <div class="flex items-center mb-4">
-              <div class="text-teal-600 font-bold text-2xl mr-4">"</div>
-              <div>
-                <p class="text-gray-600 dark:text-gray-300">EduGuard has given me peace of mind knowing my daughter is safe online. The content filtering works perfectly.</p>
-                <div class="mt-4 flex items-center">
-                  <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3">
-                    <span class="text-teal-600 font-bold">JF</span>
-                  </div>
-                  <div>
-                    <p class="font-bold text-gray-900 dark:text-white">John F.</p>
-                    <p class="text-gray-500">Parent of a 9-year-old</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
-            <div class="flex items-center mb-4">
-              <div class="text-teal-600 font-bold text-2xl mr-4">"</div>
-              <div>
-                <p class="text-gray-600 dark:text-gray-300">The time limits feature has reduced screen time by 30% and improved my son's focus on schoolwork.</p>
-                <div class="mt-4 flex items-center">
-                  <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3">
-                    <span class="text-teal-600 font-bold">SM</span>
-                  </div>
-                  <div>
-                    <p class="font-bold text-gray-900 dark:text-white">Sarah M.</p>
-                    <p class="text-gray-500">Parent of a 12-year-old</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
-            <div class="flex items-center mb-4">
-              <div class="text-teal-600 font-bold text-2xl mr-4">"</div>
-              <div>
-                <p class="text-gray-600 dark:text-gray-300">Chore rewards system has helped my kids learn responsibility while managing their screen time effectively.</p>
-                <div class="mt-4 flex items-center">
-                  <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3">
-                    <span class="text-teal-600 font-bold">TP</span>
-                  </div>
-                  <div>
-                    <p class="font-bold text-gray-900 dark:text-white">Terrance P.</p>
-                    <p class="text-gray-500">Parent of two teenagers</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA section -->
-    <section class="py-16 bg-teal-600 text-white">
-      <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">Start Protecting Your Family Today</h2>
-        <p class="text-teal-100 mb-8 max-w-2xl mx-auto">Join hundreds of families using EduGuard to keep their children safe online.</p>
-        <a href="/register" class="bg-white text-teal-600 px-8 py-4 rounded-lg font-bold shadow hover:shadow-lg transition">Sign Up Free</a>
-      </div>
-    </section>
-
-    <!-- Footer section -->
-    <footer class="bg-gray-800 text-white py-8">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 class="text-xl font-bold mb-4">EduGuard</h3>
-            <p class="text-gray-400">Keeping your family safe in the digital world.</p>
-          </div>
-          <div>
-            <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul class="space-y-2">
-              <li><a href="#home" class="text-gray-400 hover:text-white">Home</a></li>
-              <li><a href="#features" class="text-gray-400 hover:text-white">Features</a></li>
-              <li><a href="#how-it-works" class="text-gray-400 hover:text-white">How It Works</a></li>
-              <li><a href="#testimonials" class="text-gray-400 hover:text-white">Testimonials</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="text-lg font-semibold mb-4">Resources</h4>
-            <ul class="space-y-2">
-              <li><a href="/about" class="text-gray-400 hover:text-white">About Us</a></li>
-              <li><a href="/blog" class="text-gray-400 hover:text-white">Blog</a></li>
-              <li><a href="/privacy-policy" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
-              <li><a href="/terms" class="text-gray-400 hover:text-white">Terms of Service</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="text-lg font-semibold mb-4">Contact</h4>
-            <ul class="space-y-2">
-              <li><a href="mailto:support@eduguard.com" class="text-gray-400 hover:text-white">support@eduguard.com</a></li>
-              <li><a href="tel:+11234567890" class="text-gray-400 hover:text-white">+1 (123) 456-7890</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="text-center mt-8 pt-8 border-t border-gray-700 text-gray-400">
-          <p>&copy; 2026 EduGuard. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
-  </main>
+    </div>
+  </footer>
 
   <script>
-    // Scroll shadow for header
-    window.addEventListener('scroll', function() {
-      const header = document.querySelector('header');
-      if (window.scrollY > 50) {
-        header.classList.add('shadow-md');
-      } else {
-        header.classList.remove('shadow-md');
-      }
+    // Mobile menu toggle
+    document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
     });
+    // Fade-in on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
   </script>
 </body>
 </html>

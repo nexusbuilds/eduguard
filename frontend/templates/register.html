@@ -1,38 +1,89 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-    <div class="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400">Sign up to get started</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — EduGuard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a', 950: '#172554'
+            },
+            teal: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+              400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+              800: '#115e59', 900: '#134e4a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .gradient-hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #0f766e 100%); }
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+  </style>
+</head>
+<body class="font-sans antialiased gradient-hero min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <a href="/" class="inline-flex items-center gap-2 mb-6">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-teal-500 flex items-center justify-center">
+          <i class="fas fa-shield-halved text-white text-sm"></i>
         </div>
-        <form hx-post="/auth/register" hx-target="body" hx-swap="innerHTML" class="space-y-6">
-            <div>
-                <label for="name" class="block text-gray-700 dark:text-gray-300">Full Name</label>
-                <input type="text" id="name" name="name" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
-            </div>
-            <div>
-                <label for="email" class="block text-gray-700 dark:text-gray-300">Email</label>
-                <input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
-            </div>
-            <div>
-                <label for="password" class="block text-gray-700 dark:text-gray-300">Password</label>
-                <input type="password" id="password" name="password" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
-            </div>
-            <div>
-                <label for="confirm_password" class="block text-gray-700 dark:text-gray-300">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
-            </div>
-            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-md">
-                Register
-            </button>
-        </form>
-        <div class="mt-6 text-center">
-            <p class="text-gray-600 dark:text-gray-400">
-                Already have an account? <a href="/login" class="text-teal-600 hover:text-teal-500">Login</a>
-            </p>
-        </div>
+        <span class="text-2xl font-bold text-white">EduGuard</span>
+      </a>
     </div>
-</div>
-{% endblock %}
+    <div class="glass rounded-2xl p-8">
+      <h1 class="text-2xl font-bold text-white text-center mb-2">Create Account</h1>
+      <p class="text-slate-400 text-center mb-6">Start protecting your family today</p>
+      <form action="/api/auth/register-form" method="POST" class="space-y-5" onsubmit="return validateForm()">
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+          <input type="text" name="name" required class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-300" placeholder="Jane Smith">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+          <input type="email" name="email" required class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-300" placeholder="you@example.com">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+          <input type="password" name="password" id="password" required minlength="8" class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-300" placeholder="••••••••">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
+          <input type="password" name="confirm_password" id="confirm_password" required class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-300" placeholder="••••••••">
+          <p id="password-error" class="text-rose-400 text-sm mt-1 hidden">Passwords do not match</p>
+        </div>
+        <button type="submit" class="w-full px-5 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition shadow-lg shadow-brand-500/30">
+          Create Account
+        </button>
+      </form>
+      <p class="text-center text-slate-400 text-sm mt-6">
+        Already have an account? <a href="/login" class="text-brand-300 hover:text-brand-200 font-medium transition">Sign in</a>
+      </p>
+    </div>
+  </div>
+  <script>
+    function validateForm() {
+      const p = document.getElementById('password').value;
+      const cp = document.getElementById('confirm_password').value;
+      const err = document.getElementById('password-error');
+      if (p !== cp) { err.classList.remove('hidden'); return false; }
+      err.classList.add('hidden');
+      return true;
+    }
+  </script>
+</body>
+</html>

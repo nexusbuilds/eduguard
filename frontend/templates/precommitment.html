@@ -1,46 +1,17 @@
 {% extends "base.html" %}
 
+{% block title %}Precommitment — EduGuard{% endblock %}
+{% block page_title %}Precommitment{% endblock %}
+
 {% block content %}
-<div class="container mx-auto py-6">
-    <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Precommitment Settings</h1>
+<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+  <h3 class="text-lg font-bold text-slate-900 mb-2">Precommitment Settings</h3>
+  <p class="text-slate-500 mb-6">Set cooling-off periods and accountability measures to prevent impulse overrides.</p>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Cooling-Off Period -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">Cooling-Off Period</h2>
-            <p class="mb-4 text-gray-700 dark:text-gray-300">Set a delay before certain actions can be taken after a request.</p>
-            <form hx-post="/precommitment/cooling-off" hx-target="body" hx-swap="innerHTML" class="space-y-4">
-                <div>
-                    <label for="cooldown_minutes" class="block text-gray-700 dark:text-gray-300">Minutes</label>
-                    <input type="number" id="cooldown_minutes" name="cooldown_minutes" min="1" max="120" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
-                </div>
-                <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md">
-                    Save Settings
-                </button>
-            </form>
-        </div>
-
-        <!-- Strict Mode -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">Strict Mode</h2>
-            <form hx-post="/precommitment/strict-mode" hx-target="body" hx-swap="innerHTML" class="space-y-4">
-                <div class="flex items-center">
-                    <input type="checkbox" id="strict_mode" name="strict_mode" value="true" class="h-4 w-4 text-teal-600 rounded border-gray-300 focus:ring-teal-500">
-                    <label for="strict_mode" class="ml-2 block text-gray-700 dark:text-gray-300">Enable Strict Mode</label>
-                </div>
-                <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md">
-                    Update Strict Mode
-                </button>
-            </form>
-        </div>
-
-        <!-- Accountability Partners -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 lg:col-span-2">
-            <h2 class="text-xl font-semibold mb-4">Accountability Partners</h2>
-            <div hx-get="/api/accountability/partners" hx-trigger="load" hx-swap="innerHTML">
-                <div class="text-center py-4">Loading accountability partners...</div>
-            </div>
-        </div>
-    </div>
+  <div class="text-center py-8 text-slate-400">
+    <i class="fas fa-lock text-4xl mb-3"></i>
+    <p>No precommitment settings configured yet.</p>
+    <p class="text-sm">Add a child first to configure precommitment tools.</p>
+  </div>
 </div>
 {% endblock %}
