@@ -100,28 +100,62 @@ async def children_page(request: Request):
     user = await get_user_from_cookie(request)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse(request=request, name="children.html", context={"user": user})
+    from app.models.models import Child
+    from sqlalchemy.orm import selectinload
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Child).where(Child.parent_id == user.id, Child.tenant_id == user.tenant_id)
+            .options(selectinload(Child.device))
+        )
+        children = result.scalars().all()
+    return templates.TemplateResponse(request=request, name="children.html", context={"user": user, "children": children})
 
 @app.get("/devices")
 async def devices_page(request: Request):
     user = await get_user_from_cookie(request)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse(request=request, name="devices.html", context={"user": user})
+    from app.models.models import Device
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(Device).where(Device.tenant_id == user.tenant_id))
+        devices = result.scalars().all()
+    return templates.TemplateResponse(request=request, name="devices.html", context={"user": user, "devices": devices})
 
 @app.get("/chores")
 async def chores_page(request: Request):
     user = await get_user_from_cookie(request)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse(request=request, name="chores.html", context={"user": user})
+    from app.models.models import Chore, Child
+    from sqlalchemy.orm import selectinload
+    async with AsyncSessionLocal() as session:
+        chores_result = await session.execute(
+            select(Chore).where(Chore.tenant_id == user.tenant_id)
+            .options(selectinload(Chore.child))
+        )
+        chores = chores_result.scalars().all()
+        children_result = await session.execute(select(Child).where(Child.parent_id == user.id))
+        children = children_result.scalars().all()
+    return templates.TemplateResponse(request=request, name="chores.html", context={"user": user, "chores": chores, "children": children})
 
 @app.get("/grades")
 async def grades_page(request: Request):
     user = await get_user_from_cookie(request)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse(request=request, name="grades.html", context={"user": user})
+    from app.models.models import GradeSync, Child, EdsbyConfig
+    from sqlalchemy.orm import selectinload
+    async with AsyncSessionLocal() as session:
+        grades_result = await session.execute(
+            select(GradeSync).where(GradeSync.tenant_id == user.tenant_id)
+            .options(selectinload(GradeSync.child))
+        )
+        grades = grades_result.scalars().all()
+        children_result = await session.execute(select(Child).where(Child.parent_id == user.id))
+        children = children_result.scalars().all()
+        edsby_result = await session.execute(select(EdsbyConfig).where(EdsbyConfig.parent_id == user.id))
+        edsby_config = edsby_result.scalars().first()
+    return templates.TemplateResponse(request=request, name="grades.html", context={"user": user, "grades": grades, "children": children, "edsby_config": edsby_config})
 
 @app.get("/precommitment")
 async def precommitment_page(request: Request):

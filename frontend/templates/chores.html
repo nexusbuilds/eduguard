@@ -7,7 +7,7 @@
 <div class="grid lg:grid-cols-3 gap-6">
   <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
     <h3 class="text-lg font-bold text-slate-900 mb-4">Create New Chore</h3>
-    <form action="/api/chores/" method="POST" class="space-y-4">
+    <form action="/chores/create" method="POST" class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1">Title</label>
         <input type="text" name="name" required class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-300 focus:border-brand-300 outline-none">
@@ -20,6 +20,9 @@
         <label class="block text-sm font-medium text-slate-700 mb-1">Assign to Child</label>
         <select name="child_id" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-brand-300 focus:border-brand-300 outline-none">
           <option value="">Select a child...</option>
+          {% for child in children %}
+          <option value="{{ child.id }}">{{ child.first_name }} {{ child.last_name }}</option>
+          {% endfor %}
         </select>
       </div>
       <div>
@@ -36,11 +39,52 @@
 
   <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-slate-100">
     <h3 class="text-lg font-bold text-slate-900 mb-4">Active Chores</h3>
+    {% if chores %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+          <tr>
+            <th class="px-4 py-3 rounded-l-lg">Chore</th>
+            <th class="px-4 py-3">Child</th>
+            <th class="px-4 py-3">Points</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3 rounded-r-lg">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for chore in chores %}
+          <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3 font-medium text-slate-900">{{ chore.name }}</td>
+            <td class="px-4 py-3 text-slate-500">{{ chore.child.first_name if chore.child else '—' }}</td>
+            <td class="px-4 py-3 text-slate-500">{{ chore.reward_points }}</td>
+            <td class="px-4 py-3">
+              {% if chore.verified_by_parent %}
+              <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Verified</span>
+              {% elif chore.is_completed %}
+              <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Pending</span>
+              {% else %}
+              <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">Open</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3">
+              {% if chore.is_completed and not chore.verified_by_parent %}
+              <form action="/api/chores/{{ chore.id }}/verify" method="POST" class="inline">
+                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium text-sm">Verify</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
     <div class="text-center py-8 text-slate-400">
       <i class="fas fa-clipboard-list text-4xl mb-3"></i>
       <p>No chores created yet.</p>
       <p class="text-sm">Create your first chore to get started.</p>
     </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
