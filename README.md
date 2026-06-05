@@ -154,13 +154,121 @@ eduguard/
 
 | Prefix | Description |
 |--------|-------------|
-| `/api/auth` | Login, register, JWT management |
+| `/api/auth` | Login, register, JWT + cookie sessions |
 | `/api/parents` | Parent dashboard and profile |
 | `/api/children` | Child management, access levels |
-| `/api/devices` | WireGuard peer management |
-| `/api/grades` | Edsby grade sync |
-| `/api/chores` | Chore creation and verification |
-| `/api/precommitment` | Cooling-off, strict mode, partners |
+| `/api/devices` | Device management |
+| `/api/grades` | Edsby grade sync + manual grades |
+| `/api/chores` | Chore creation, kid completion, parent verification |
+| `/api/precommitment` | Cooling-off periods, locked strict mode, accountability partners |
+| `/api/wellness` | Counselor directory (Ontario/OHIP), rule change requests |
+| `/api/reports` | Real-time summary stats + activity log |
+| `/api/policy` | Automatic tier evaluation (grades + chores) |
+
+## Testing the Full Flow
+
+### 1. Sign Up
+```bash
+curl -X POST http://localhost:8080/api/auth/register-form \
+  -d "name=Test Parent" -d "email=parent@test.com" \
+  -d "password=password123" -d "confirm_password=password123"
+# Returns 302 → /dashboard with access_token cookie
+```
+
+### 2. Add a Child
+```bash
+curl -X POST http://localhost:8080/children/add \
+  -b "access_token=YOUR_COOKIE" \
+  -d "first_name=James" -d "last_name=Davis" -d "birthdate=2010-05-15"
+```
+
+### 3. Add a Device
+```bash
+curl -X POST http://localhost:8080/devices/add \
+  -b "access_token=YOUR_COOKIE" \
+  -d "name=James Laptop" -d "device_type=laptop" -d "mac_address=00:11:22:33:44:55"
+```
+
+### 4. Configure Edsby
+```bash
+curl -X POST http://localhost:8080/edsby/configure \
+  -b "access_token=YOUR_COOKIE" \
+  -d "base_url=https://toronto.edsby.com" -d "username=parent123" -d "password=secret"
+```
+
+### 5. Sync Grades
+```bash
+curl -X POST http://localhost:8080/api/grades/sync \
+  -b "access_token=YOUR_COOKIE"
+# Returns: {"status": "success", "message": "Imported X grades from Edsby"}
+```
+
+### 6. Create a Chore
+```bash
+curl -X POST http://localhost:8080/chores/create \
+  -b "access_token=YOUR_COOKIE" \
+  -d "name=Clean room" -d "description=Vacuum and dust" -d "child_id=1" -d "reward_points=15"
+```
+
+### 7. Kid Completes Chore
+```bash
+curl -X POST http://localhost:8080/api/chores/1/complete \
+  -b "access_token=YOUR_COOKIE"
+```
+
+### 8. Parent Verifies Chore → Tier Auto-Updates
+```bash
+curl -X POST http://localhost:8080/api/chores/1/verify \
+  -b "access_token=YOUR_COOKIE"
+# Returns: {"tier_update": {"new_tier": "full", "reason": "Excellent grades (87%) and 1/1 chores completed"}}
+```
+
+### 9. Check Dashboard
+```bash
+curl http://localhost:8080/api/reports/summary -b "access_token=YOUR_COOKIE"
+# Returns: {"total_children": 1, "total_devices": 1, "average_grade": 87.0, "tier_distribution": {"full": 1}}
+```
+
+### 10. Precommitment (Cooling-off)
+```bash
+# Create precommitment
+curl -X POST http://localhost:8080/api/precommitment/ \
+  -b "access_token=YOUR_COOKIE" -H "Content-Type: application/json" \
+  -d '{"child_id":1,"cooling_off_hours":2}'
+
+# Enable strict mode (sets lock)
+curl -X PUT "http://localhost:8080/api/precommitment/1/strict-mode?enabled=true" \
+  -b "access_token=YOUR_COOKIE"
+
+# Try to disable (fails if cooling-off active)
+curl -X PUT "http://localhost:8080/api/precommitment/1/strict-mode?enabled=false" \
+  -b "access_token=YOUR_COOKIE"
+# Returns: 403 "Strict mode is locked. X hours remaining"
+```
+
+### 11. Wellness Hub
+```bash
+# List OHIP counselors in Toronto
+curl "http://localhost:8080/api/wellness/counselors?accepts_ohip=true&location=Toronto" \
+  -b "access_token=YOUR_COOKIE"
+
+# Submit rule change request
+curl -X POST "http://localhost:8080/api/wellness/rule-change-request?child_id=1&reason=Anxiety+spike&counselor_id=1" \
+  -b "access_token=YOUR_COOKIE"
+```
+
+## Tier Logic
+
+| Tier | Condition | Internet Access |
+|------|-----------|-----------------|
+| **Full** | Grades ≥80% + chores ≥80% done | Unrestricted |
+| **Limited** | Grades ≥65% + chores ≥50% done | No social media/gaming/streaming |
+| **Research Only** | Below thresholds | Whitelist only (Wikipedia, Khan Academy, etc.) |
+
+Tiers are automatically recalculated when:
+- A chore is verified by parent (`/api/chores/{id}/verify`)
+- Grades are synced from Edsby (`/api/grades/sync`)
+- Parent manually applies policy (`/api/policy/apply/{child_id}?tier=full`)
 
 ## Multi-tenancy
 

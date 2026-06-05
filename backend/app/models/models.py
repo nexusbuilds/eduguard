@@ -102,3 +102,17 @@ class EdsbyConfig(Base):
     is_active = Column(Boolean, default=False)
     last_synced_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+
+class Counselor(Base):
+    __tablename__ = 'counselors'
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String, index=True, nullable=False, default='default')
+    name = Column(String, nullable=False)
+    specialty = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    accepts_ohip = Column(Boolean, default=False)
+    accepts_insurance = Column(Boolean, default=False)
+    phone = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())

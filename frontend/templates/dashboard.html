@@ -17,9 +17,9 @@
       <div class="w-12 h-12 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center">
         <i class="fas fa-users text-lg"></i>
       </div>
-      <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+0</span>
+      <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">{{ children|length }}</span>
     </div>
-    <div class="text-3xl font-bold text-slate-900">0</div>
+    <div class="text-3xl font-bold text-slate-900">{{ children|length }}</div>
     <div class="text-sm text-slate-500">Children</div>
   </div>
   <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
@@ -27,9 +27,9 @@
       <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center">
         <i class="fas fa-laptop text-lg"></i>
       </div>
-      <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+0</span>
+      <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">{{ device_count }}</span>
     </div>
-    <div class="text-3xl font-bold text-slate-900">0</div>
+    <div class="text-3xl font-bold text-slate-900">{{ device_count }}</div>
     <div class="text-sm text-slate-500">Devices</div>
   </div>
   <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
@@ -37,9 +37,9 @@
       <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
         <i class="fas fa-check-circle text-lg"></i>
       </div>
-      <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">0 pending</span>
+      <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">{{ pending_chores }} pending</span>
     </div>
-    <div class="text-3xl font-bold text-slate-900">0</div>
+    <div class="text-3xl font-bold text-slate-900">{{ chores_done }}</div>
     <div class="text-sm text-slate-500">Chores Done</div>
   </div>
   <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
@@ -48,7 +48,7 @@
         <i class="fas fa-graduation-cap text-lg"></i>
       </div>
     </div>
-    <div class="text-3xl font-bold text-slate-900">—</div>
+    <div class="text-3xl font-bold text-slate-900">{{ avg_grade or '—' }}</div>
     <div class="text-sm text-slate-500">Avg Grade</div>
   </div>
 </div>
@@ -88,7 +88,7 @@
           <div class="font-semibold text-slate-900">Full Free Use</div>
           <div class="text-sm text-slate-500">Grades ≥80% + chores ≥80% complete</div>
         </div>
-        <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 text-sm font-semibold">0 kids</span>
+        <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 text-sm font-semibold">{{ tier_counts.full }} kids</span>
       </div>
       <div class="flex items-center gap-4 p-4 rounded-xl bg-amber-50 border border-amber-100">
         <div class="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold">L</div>
@@ -96,7 +96,7 @@
           <div class="font-semibold text-slate-900">Limited Access</div>
           <div class="text-sm text-slate-500">Grades ≥65% + chores ≥50% complete</div>
         </div>
-        <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-700 text-sm font-semibold">0 kids</span>
+        <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-700 text-sm font-semibold">{{ tier_counts.limited }} kids</span>
       </div>
       <div class="flex items-center gap-4 p-4 rounded-xl bg-rose-50 border border-rose-100">
         <div class="w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold">R</div>
@@ -104,19 +104,82 @@
           <div class="font-semibold text-slate-900">Homework / Research Only</div>
           <div class="text-sm text-slate-500">Below threshold — whitelist only</div>
         </div>
-        <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-700 text-sm font-semibold">0 kids</span>
+        <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-700 text-sm font-semibold">{{ tier_counts.research_only }} kids</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Recent Activity -->
-<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-  <h3 class="text-lg font-bold text-slate-900 mb-4">Recent Activity</h3>
+<!-- Recent Grades -->
+<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 mb-8">
+  <h3 class="text-lg font-bold text-slate-900 mb-4">Recent Grades</h3>
+  {% if recent_grades %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+        <tr>
+          <th class="px-4 py-3 rounded-l-lg">Child</th>
+          <th class="px-4 py-3">Subject</th>
+          <th class="px-4 py-3">Grade</th>
+          <th class="px-4 py-3 rounded-r-lg">Synced</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for g in recent_grades %}
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="px-4 py-3 font-medium text-slate-900">{{ g.child.first_name if g.child else '—' }}</td>
+          <td class="px-4 py-3 text-slate-500">{{ g.subject }}</td>
+          <td class="px-4 py-3"><span class="px-2 py-1 bg-brand-100 text-brand-700 text-xs font-semibold rounded-full">{{ g.grade }}%</span></td>
+          <td class="px-4 py-3 text-slate-500">{{ g.synced_at.strftime('%Y-%m-%d') if g.synced_at else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
   <div class="text-center py-8 text-slate-400">
     <i class="fas fa-inbox text-4xl mb-3"></i>
-    <p>No recent activity yet.</p>
-    <p class="text-sm">Add a child to get started!</p>
+    <p>No grades synced yet.</p>
+    <p class="text-sm"><a href="/grades" class="text-brand-600 hover:text-brand-700">Sync grades from Edsby →</a></p>
   </div>
+  {% endif %}
+</div>
+
+<!-- Children List -->
+<div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+  <h3 class="text-lg font-bold text-slate-900 mb-4">Your Children</h3>
+  {% if children %}
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for child in children %}
+    <div class="p-4 rounded-xl border border-slate-100 hover:shadow-md transition">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-brand-200 flex items-center justify-center text-brand-700 font-bold text-sm">{{ child.first_name[0] }}{{ child.last_name[0] }}</div>
+        <div>
+          <div class="font-semibold text-slate-900">{{ child.first_name }} {{ child.last_name }}</div>
+          <div class="text-xs text-slate-500">{{ child.birthdate or 'No birthdate' }}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        {% if child.access_level == 'full' %}
+        <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Full Access</span>
+        {% elif child.access_level == 'limited' %}
+        <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Limited</span>
+        {% else %}
+        <span class="px-2 py-1 bg-rose-100 text-rose-700 text-xs font-medium rounded-full">Research Only</span>
+        {% endif %}
+        {% if child.device %}
+        <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">{{ child.device.name }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-8 text-slate-400">
+    <i class="fas fa-users text-4xl mb-3"></i>
+    <p>No children added yet.</p>
+    <p class="text-sm"><a href="/children" class="text-brand-600 hover:text-brand-700">Add your first child →</a></p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

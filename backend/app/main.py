@@ -93,7 +93,79 @@ async def dashboard(request: Request):
     user = await get_user_from_cookie(request)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse(request=request, name="dashboard.html", context={"user": user})
+    from app.models.models import Child, Device, Chore, GradeSync
+    from sqlalchemy.orm import selectinload
+    from sqlalchemy import select, func
+    from datetime import datetime, timedelta
+    async with AsyncSessionLocal() as session:
+        # Children with devices
+        child_result = await session.execute(
+            select(Child).where(Child.parent_id == user.id, Child.tenant_id == user.tenant_id)
+            .options(selectinload(Child.device))
+        )
+        children = child_result.scalars().all()
+
+        # Device count
+        device_result = await session.execute(select(Device).where(Device.tenant_id == user.tenant_id))
+        device_count = len(device_result.scalars().all())
+
+        # Chores done this week
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        chores_done_result = await session.execute(
+            select(Chore).where(
+                Chore.tenant_id == user.tenant_id,
+                Chore.is_completed == True,
+                Chore.verified_by_parent == True,
+                Chore.completed_at >= week_ago
+            )
+        )
+        chores_done = len(chores_done_result.scalars().all())
+
+        # Pending chores
+        pending_result = await session.execute(
+            select(Chore).where(
+                Chore.tenant_id == user.tenant_id,
+                Chore.is_completed == False
+            )
+        )
+        pending_chores = len(pending_result.scalars().all())
+
+        # Average grade
+        grades = await session.execute(
+            select(GradeSync).where(GradeSync.tenant_id == user.tenant_id)
+        )
+        all_grades = grades.scalars().all()
+        avg_grade = None
+        if all_grades:
+            try:
+                numeric = [float(g.grade) for g in all_grades if g.grade and g.grade.replace('.', '').isdigit()]
+                avg_grade = round(sum(numeric) / len(numeric), 1) if numeric else None
+            except:
+                avg_grade = None
+
+        # Tier distribution
+        tier_counts = {"full": 0, "limited": 0, "research_only": 0}
+        for c in children:
+            tier_counts[c.access_level] = tier_counts.get(c.access_level, 0) + 1
+
+        # Recent grades
+        recent_grades_result = await session.execute(
+            select(GradeSync).where(GradeSync.tenant_id == user.tenant_id)
+            .order_by(GradeSync.synced_at.desc()).limit(5)
+            .options(selectinload(GradeSync.child))
+        )
+        recent_grades = recent_grades_result.scalars().all()
+
+    return templates.TemplateResponse(request=request, name="dashboard.html", context={
+        "user": user,
+        "children": children,
+        "device_count": device_count,
+        "chores_done": chores_done,
+        "pending_chores": pending_chores,
+        "avg_grade": avg_grade,
+        "tier_counts": tier_counts,
+        "recent_grades": recent_grades
+    })
 
 @app.get("/children")
 async def children_page(request: Request):
