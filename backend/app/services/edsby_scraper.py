@@ -1,12 +1,16 @@
-"""Edsby grade scraper using Playwright async API with JS-encrypted login.
+"""Edsby grade scraper using Playwright async API.
 
-Edsby uses client-side HMAC-SHA-512 password encryption via JavaScript.
-This module uses Playwright (headless browser) to handle the encryption natively.
+Supports two login paths:
+1. Office365 SSO (used by NNDSB and many Ontario school boards):
+   - Start at /p/BasePublic/
+   - Click Office365 link
+   - Microsoft login -> ADFS -> Edsby parent home
+2. Direct /core/login with JS-encrypted password (fallback for non-SSO schools)
 
 Multi-child support:
-- After login, Edsby parent portal shows child selector cards
-- Each child has their own classes, grades, and assignments
-- The scraper discovers all children, then navigates to each child's gradebook
+- Parent home page shows child selector cards (e.g. "RT\nRowen Larry Toshack")
+- Clicking a child navigates to /p/BaseParentChild/{nid}
+- Classes section on child page contains current grades
 """
 import re
 import random
@@ -29,7 +33,7 @@ class EdsbyGrade:
 class EdsbyChild:
     """Represents a student/child found in the parent's Edsby account."""
     name: str
-    nid: str  # Edsby's internal node ID
+    nid: str  # Edsby's internal node ID (extracted from URL)
     grades: List[EdsbyGrade] = field(default_factory=list)
 
 
@@ -42,7 +46,7 @@ class EdsbyUnavailableError(Exception):
 
 
 class EdsbyScraper:
-    """Edsby scraper with async Playwright for JS-encrypted login + multi-child support."""
+    """Edsby scraper with async Playwright + NNDSB Office365 SSO support."""
 
     def __init__(self, base_url: str, username: str, password: str):
         self.base_url = base_url.rstrip("/")
@@ -52,6 +56,7 @@ class EdsbyScraper:
         self._browser = None
         self._context = None
         self._pw = None
+        self._parent_url = None
 
     async def _init_playwright(self):
         """Initialize Playwright browser."""
@@ -88,16 +93,103 @@ class EdsbyScraper:
         except Exception as e:
             raise EdsbyUnavailableError(f"Cannot launch browser: {e}")
 
-        self._context = await self._browser.new_context(viewport={"width": 1280, "height": 800})
+        self._context = await self._browser.new_context(
+            viewport={"width": 1280, "height": 800},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
         self._page = await self._context.new_page()
 
-    async def login(self) -> bool:
-        """Log into Edsby using Playwright to handle JS encryption."""
-        await self._init_playwright()
+    async def _try_o365_login(self) -> bool:
+        """Try Office365 SSO login flow (NNDSB-style)."""
+        import asyncio
         page = self._page
 
         try:
-            await page.goto(f"{self.base_url}/core/login", wait_until="networkidle")
+            await page.goto(f"{self.base_url}/p/BasePublic/", wait_until="networkidle", timeout=20000)
+        except Exception as e:
+            raise EdsbyUnavailableError(f"Cannot reach Edsby public page: {e}")
+
+        await asyncio.sleep(2)
+
+        # Check if there's an Office365 SSO link
+        o365_link = await page.query_selector("a[href*='office365']")
+        if not o365_link:
+            return False  # Fall back to direct login
+
+        await o365_link.click()
+
+        try:
+            await page.wait_for_url("**login.microsoftonline.com**", timeout=15000)
+        except Exception:
+            return False
+
+        await page.wait_for_load_state("networkidle")
+        await asyncio.sleep(2)
+
+        # Microsoft email page
+        email_field = await page.query_selector("input[name='loginfmt'], input[type='email']")
+        if not email_field:
+            raise EdsbyUnavailableError("Microsoft login email field not found")
+        await email_field.fill(self.username)
+
+        next_btn = await page.query_selector("#idSIButton9, input[type='submit']")
+        if next_btn:
+            await next_btn.click()
+        else:
+            await email_field.press("Enter")
+
+        await asyncio.sleep(4)
+
+        # Could be ADFS or Microsoft password page
+        pwd_field = await page.query_selector("input[name='Password'], input[type='password'], #passwordInput")
+        if pwd_field:
+            await pwd_field.fill(self.password)
+            submit_btn = await page.query_selector("#submitButton, #idSIButton9, input[type='submit']")
+            if submit_btn:
+                await submit_btn.click()
+            else:
+                await pwd_field.press("Enter")
+        else:
+            # Microsoft password page
+            pwd_field = await page.query_selector("input[name='passwd'], input[type='password']")
+            if not pwd_field:
+                raise EdsbyUnavailableError("Password field not found on login page")
+            await pwd_field.fill(self.password)
+            submit_btn = await page.query_selector("#idSIButton9, input[type='submit']")
+            if submit_btn:
+                await submit_btn.click()
+            else:
+                await pwd_field.press("Enter")
+
+        await asyncio.sleep(5)
+
+        # Wait for redirect back to Edsby
+        for i in range(15):
+            await asyncio.sleep(2)
+            url = page.url.lower()
+            if self.base_url.lower() in url and "login" not in url and "microsoft" not in url and "adfs" not in url:
+                break
+
+        if "/login" in page.url.lower() or "microsoft" in page.url.lower() or "adfs" in page.url.lower():
+            body_text = await page.inner_text("body")
+            if "bad" in body_text.lower() or "incorrect" in body_text.lower():
+                raise EdsbyAuthError("Invalid Edsby username or password")
+            elif "disabled" in body_text.lower() or "locked" in body_text.lower():
+                raise EdsbyAuthError("Edsby account temporarily disabled due to too many failed attempts")
+            return False
+
+        await page.wait_for_load_state("networkidle")
+        await asyncio.sleep(3)
+        self._parent_url = page.url
+        return True
+
+    async def _try_direct_login(self) -> bool:
+        """Fallback: direct /core/login with JS-encrypted password."""
+        import asyncio
+        page = self._page
+
+        try:
+            await page.goto(f"{self.base_url}/core/login", wait_until="networkidle", timeout=20000)
         except Exception as e:
             raise EdsbyUnavailableError(f"Cannot reach Edsby login page: {e}")
 
@@ -107,7 +199,6 @@ class EdsbyScraper:
         await page.fill("input[name='userid']", self.username)
         await page.fill("input[name='password']", self.password)
 
-        # Trigger JS encryption and enable disabled fields
         await page.evaluate("""() => {
             const form = document.querySelector('form');
             if (typeof doPasswordEncrypt === 'function') {
@@ -125,6 +216,7 @@ class EdsbyScraper:
         except Exception as e:
             raise EdsbyUnavailableError(f"Login submission failed: {e}")
 
+        await asyncio.sleep(3)
         current_url = page.url
         body_text = await page.inner_text("body")
 
@@ -136,176 +228,186 @@ class EdsbyScraper:
             else:
                 raise EdsbyAuthError(f"Edsby login failed. Page: {current_url}")
 
+        self._parent_url = page.url
         return True
+
+    async def login(self) -> bool:
+        """Log into Edsby. Tries Office365 SSO first, then falls back to direct login."""
+        await self._init_playwright()
+
+        try:
+            if await self._try_o365_login():
+                return True
+        except EdsbyAuthError:
+            raise
+        except Exception as e:
+            # If O365 fails for technical reasons, try direct login
+            pass
+
+        return await self._try_direct_login()
 
     async def discover_children(self) -> List[EdsbyChild]:
         """Discover all children linked to this parent account."""
+        import asyncio
         if not self._page:
             await self.login()
 
         page = self._page
         children: List[EdsbyChild] = []
+        seen_names = set()
 
-        # Strategy 1: Look for student/child cards on home page with data-nid
-        nids = await page.evaluate("""() => {
-            const cards = document.querySelectorAll('[data-nid]');
-            return Array.from(cards).map(el => ({
-                nid: el.getAttribute('data-nid'),
-                text: el.innerText.trim().substring(0, 100),
-            })).filter(x => x.nid && x.nid.length > 5);
-        }""")
+        # Strategy 1: Look for role=link elements with child initials + name pattern
+        link_els = await page.query_selector_all("[role='link']")
+        child_names = []
+        for el in link_els:
+            text = (await el.inner_text()).strip()
+            if "\n" in text:
+                parts = text.split("\n")
+                if len(parts) >= 2:
+                    initials = parts[0].strip()
+                    name = parts[1].strip()
+                    if re.match(r"^[A-Z]{2,4}$", initials) and len(name.split()) >= 2:
+                        if name in seen_names:
+                            continue
+                        if "Settings" in name or "Messages" in name or "Calendar" in name:
+                            continue
+                        if name == "Chris Toshack":
+                            continue
+                        # Likely a child
+                        seen_names.add(name)
+                        child_names.append(name)
 
-        for item in nids:
-            text = item['text']
-            nid = item['nid']
-            # Filter out non-student items (look for names, not generic UI elements)
-            if text and len(text) > 1 and not any(bad in text.lower() for bad in ['login', 'password', 'submit', 'cancel', 'edsby']):
-                children.append(EdsbyChild(name=text, nid=nid))
+        # Strategy 2: Regex body text for "XX\nFirst Last" patterns
+        if not child_names:
+            body_text = await page.inner_text("body")
+            pattern = r"([A-Z]{2,4})\n([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)"
+            matches = re.findall(pattern, body_text)
+            for initials, name in matches:
+                if name in seen_names:
+                    continue
+                if "Settings" in name or "Messages" in name or "Calendar" in name or "Chris Toshack" in name:
+                    continue
+                seen_names.add(name)
+                child_names.append(name)
 
-        # Strategy 2: Look for links to student profiles
-        if not children:
-            links = await page.query_selector_all("a")
-            for link in links:
-                href = await link.get_attribute("href") or ""
-                text = (await link.inner_text()).strip()
-                # Edsby student links typically contain /p/ or /node/ with student IDs
-                if "/p/" in href or "/node/" in href or "student" in href.lower():
-                    if len(text) > 1 and len(text) < 60 and text not in [c.name for c in children]:
-                        # Extract nid from href if possible
-                        nid_match = re.search(r'/(\d+)$', href) or re.search(r'nid=(\d+)', href)
-                        nid = nid_match.group(1) if nid_match else href
-                        children.append(EdsbyChild(name=text, nid=nid))
+        # For each child name, click to get their nid, then go back
+        for name in child_names:
+            nid = ""
+            try:
+                # Re-query the element each time since page may have navigated
+                await page.goto(self._parent_url or self.base_url, wait_until="networkidle")
+                await asyncio.sleep(3)
 
-        # Strategy 3: Look for panel/class cards with student photos/names
-        if not children:
-            cards = await page.query_selector_all(".card, .panel, .tile, [class*='student'], [class*='child']")
-            for card in cards:
-                text = (await card.inner_text()).strip()
-                if len(text) > 1 and len(text) < 60:
-                    nid = await card.get_attribute("data-nid") or await card.get_attribute("onclick") or ""
-                    children.append(EdsbyChild(name=text, nid=nid))
+                el = await page.wait_for_selector(f"text={name}", timeout=5000)
+                if el:
+                    await el.click()
+                    await asyncio.sleep(4)
+                    child_url = page.url
+                    match = re.search(r'/BaseParentChild/(\d+)', child_url)
+                    if match:
+                        nid = match.group(1)
+            except Exception:
+                pass
+
+            children.append(EdsbyChild(name=name, nid=nid))
+
+        # Return to parent page
+        if self._parent_url:
+            try:
+                await page.goto(self._parent_url, wait_until="networkidle")
+                await asyncio.sleep(2)
+            except Exception:
+                pass
 
         return children
 
-    async def _navigate_to_child_grades(self, child: EdsbyChild) -> bool:
-        """Navigate to a specific child's gradebook page."""
+    async def _navigate_to_child(self, child: EdsbyChild) -> bool:
+        """Navigate to a specific child's page."""
+        import asyncio
         page = self._page
 
-        # Strategy 1: Click the child's card/link by data-nid
+        # If we have a nid, go directly
         if child.nid:
-            clicked = await page.evaluate(f"""(nid) => {{
-                const el = document.querySelector(`[data-nid="${{nid}}"]`);
-                if (el) {{ el.click(); return true; }}
-                return false;
-            }}""", child.nid)
-            if clicked:
-                await page.wait_for_load_state("networkidle")
-                return True
-
-        # Strategy 2: Look for a grades/report card link after clicking child
-        links = await page.query_selector_all("a")
-        for link in links:
-            text = (await link.inner_text()).strip().lower()
-            href = await link.get_attribute("href") or ""
-            if any(w in text for w in ["grade", "report card", "progress", "mark", "transcript"]):
-                try:
-                    await link.click()
-                    await page.wait_for_load_state("networkidle")
-                    return True
-                except Exception:
-                    continue
-
-        # Strategy 3: Direct URL construction
-        grade_urls = [
-            f"{self.base_url}/core/node/{child.nid}",
-            f"{self.base_url}/core/p/{child.nid}",
-            f"{self.base_url}/core/grades?student={child.nid}",
-        ]
-        for url in grade_urls:
             try:
-                await page.goto(url, wait_until="networkidle")
+                await page.goto(f"{self.base_url}/p/BaseParentChild/{child.nid}", wait_until="networkidle")
+                await asyncio.sleep(3)
                 return True
             except Exception:
-                continue
+                pass
+
+        # Otherwise try clicking by name
+        try:
+            el = await page.wait_for_selector(f"text={child.name}", timeout=5000)
+            if el:
+                await el.click()
+                await asyncio.sleep(4)
+                return True
+        except Exception:
+            pass
 
         return False
 
     async def scrape_child_grades(self, child: EdsbyChild) -> List[EdsbyGrade]:
-        """Scrape grades for a specific child."""
+        """Scrape grades for a specific child from their Edsby page."""
+        import asyncio
+        from bs4 import BeautifulSoup
+
         page = self._page
         grades: List[EdsbyGrade] = []
 
-        # Navigate to child's grades
-        if not await self._navigate_to_child_grades(child):
+        if not await self._navigate_to_child(child):
             return grades
 
-        content = await page.content()
-        from bs4 import BeautifulSoup
-        soup = BeautifulSoup(content, "html.parser")
+        # Wait for content to settle
+        await asyncio.sleep(2)
+        html = await page.content()
+        soup = BeautifulSoup(html, "html.parser")
 
-        # Edsby gradebook structures vary. Try multiple extraction strategies:
+        text = soup.get_text("\n")
+        lines = [l.strip() for l in text.split("\n") if l.strip()]
 
-        # Strategy A: Look for table rows with subject + grade
-        for row in soup.find_all("tr"):
-            cells = row.find_all(["td", "th"])
-            if len(cells) < 2:
+        in_classes = False
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            if line == "Classes":
+                in_classes = True
+                i += 1
                 continue
+            if in_classes and line in ["Recent Activity", "Schedule Absence", "Portfolio", "Learning Story", "View Report Cards", "Overall"]:
+                in_classes = False
+            if in_classes:
+                # Find percentage grades in the next few lines
+                if re.match(r"^\d+(\.\d+)?%$", line):
+                    grade = line.replace("%", "")
+                    subject = None
+                    course_code = None
 
-            subject = None
-            grade_val = None
-            for cell in cells:
-                text = cell.get_text(strip=True)
-                # Grade patterns
-                if re.match(r"^\d{1,3}\s*%$", text) or re.match(r"^\d{1,3}$", text):
-                    grade_val = text.replace("%", "").strip()
-                elif re.match(r"^[A-F][+-]?$", text):
-                    grade_val = text
-                elif len(text) > 2 and len(text) < 60 and not text.replace(".", "").replace("-", "").isdigit():
-                    if not subject:
-                        subject = text
+                    # Look backwards up to 4 lines
+                    for back in range(1, min(5, i)):
+                        candidate = lines[i - back]
+                        # Course code: all uppercase alphanumeric starting with letter
+                        if re.match(r"^[A-Z][A-Z0-9]{2,}$", candidate):
+                            course_code = candidate
+                        # Subject: starts with capital letter, has words/spaces/hyphens/ampersands
+                        elif re.match(r"^[A-Z][a-zA-Z\s\-&]{2,}$", candidate) and not re.match(r"^[A-Z]+$", candidate):
+                            if not subject:
+                                subject = candidate
 
-            if subject and grade_val:
-                grades.append(EdsbyGrade(
-                    subject=subject,
-                    grade=grade_val,
-                    grade_date=date.today(),
-                ))
-
-        # Strategy B: Look for div cards with class names and grades
-        if not grades:
-            for div in soup.find_all("div"):
-                text = div.get_text(strip=True)
-                # Look for patterns like "Math\n85%" within a single div
-                match = re.search(r"([A-Za-z][A-Za-z\s]{2,40})\s*[:\-]?\s*(\d{1,3})\s*%", text)
-                if match:
-                    grades.append(EdsbyGrade(
-                        subject=match.group(1).strip(),
-                        grade=match.group(2).strip(),
-                        grade_date=date.today(),
-                    ))
-
-        # Strategy C: Regex on full page text
-        if not grades:
-            text = soup.get_text()
-            patterns = [
-                r"([A-Za-z][A-Za-z\s]{2,30})\s*[:\-]?\s*(\d{1,3})\s*%",
-                r"([A-Za-z][A-Za-z\s]{2,30})\s*[:\-]?\s*([A-F][+-]?)\b",
-            ]
-            seen = set()
-            for pattern in patterns:
-                for match in re.finditer(pattern, text):
-                    subject = match.group(1).strip()
-                    grade_val = match.group(2).strip()
-                    key = subject.lower()
-                    if key not in seen and len(subject) > 2 and len(subject) < 50:
-                        seen.add(key)
+                    if subject:
                         grades.append(EdsbyGrade(
                             subject=subject,
-                            grade=grade_val,
+                            grade=grade,
                             grade_date=date.today(),
+                            category=course_code,
                         ))
+                    i += 1
+                else:
+                    i += 1
+            else:
+                i += 1
 
-        # Deduplicate
+        # Deduplicate by subject
         seen = set()
         unique = []
         for g in grades:
@@ -318,11 +420,14 @@ class EdsbyScraper:
 
     async def scrape_all_children_grades(self) -> List[EdsbyChild]:
         """Discover all children and scrape grades for each."""
+        import asyncio
         children = await self.discover_children()
         for child in children:
             child.grades = await self.scrape_child_grades(child)
-            # Go back to home page for next child
-            await self._page.goto(self.base_url, wait_until="networkidle")
+            # Go back to parent page for next child
+            if self._parent_url:
+                await self._page.goto(self._parent_url, wait_until="networkidle")
+                await asyncio.sleep(3)
         return children
 
     async def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
@@ -330,15 +435,12 @@ class EdsbyScraper:
         children = await self.scrape_all_children_grades()
 
         if child_name and children:
-            # Find matching child
             child_name_lower = child_name.lower()
             for child in children:
                 if child_name_lower in child.name.lower():
                     return child.grades
-            # If no exact match, return first child's grades with a warning
             return children[0].grades if children else []
 
-        # Return all grades flattened
         all_grades = []
         for child in children:
             all_grades.extend(child.grades)
