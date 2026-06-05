@@ -1,4 +1,4 @@
-"""Edsby grade scraper using Playwright with JS-encrypted login.
+"""Edsby grade scraper using Playwright async API with JS-encrypted login.
 
 Edsby uses client-side HMAC-SHA-512 password encryption via JavaScript.
 This module uses Playwright (headless browser) to handle the encryption natively.
@@ -10,6 +10,7 @@ Multi-child support:
 """
 import re
 import random
+import shutil
 from datetime import datetime, date
 from typing import List, Dict, Optional
 from dataclasses import dataclass, field
@@ -41,7 +42,7 @@ class EdsbyUnavailableError(Exception):
 
 
 class EdsbyScraper:
-    """Edsby scraper with Playwright for JS-encrypted login + multi-child support."""
+    """Edsby scraper with async Playwright for JS-encrypted login + multi-child support."""
 
     def __init__(self, base_url: str, username: str, password: str):
         self.base_url = base_url.rstrip("/")
@@ -52,15 +53,14 @@ class EdsbyScraper:
         self._context = None
         self._pw = None
 
-    def _init_playwright(self):
+    async def _init_playwright(self):
         """Initialize Playwright browser."""
         try:
-            from playwright.sync_api import sync_playwright
+            from playwright.async_api import async_playwright
         except ImportError:
             raise EdsbyUnavailableError("Playwright not installed. Run: pip install playwright")
 
-        self._pw = sync_playwright().__enter__()
-        import shutil
+        self._pw = await async_playwright().start()
         chromium_paths = [
             "/usr/bin/google-chrome",
             "/usr/bin/chromium",
@@ -75,40 +75,40 @@ class EdsbyScraper:
 
         try:
             if exe_path:
-                self._browser = self._pw.chromium.launch(
+                self._browser = await self._pw.chromium.launch(
                     headless=True,
                     executable_path=exe_path,
                     args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
                 )
             else:
-                self._browser = self._pw.chromium.launch(
+                self._browser = await self._pw.chromium.launch(
                     headless=True,
                     args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
                 )
         except Exception as e:
             raise EdsbyUnavailableError(f"Cannot launch browser: {e}")
 
-        self._context = self._browser.new_context(viewport={"width": 1280, "height": 800})
-        self._page = self._context.new_page()
+        self._context = await self._browser.new_context(viewport={"width": 1280, "height": 800})
+        self._page = await self._context.new_page()
 
-    def login(self) -> bool:
+    async def login(self) -> bool:
         """Log into Edsby using Playwright to handle JS encryption."""
-        self._init_playwright()
+        await self._init_playwright()
         page = self._page
 
         try:
-            page.goto(f"{self.base_url}/core/login", wait_until="networkidle")
+            await page.goto(f"{self.base_url}/core/login", wait_until="networkidle")
         except Exception as e:
             raise EdsbyUnavailableError(f"Cannot reach Edsby login page: {e}")
 
         if "/login" not in page.url:
             return True
 
-        page.fill("input[name='userid']", self.username)
-        page.fill("input[name='password']", self.password)
+        await page.fill("input[name='userid']", self.username)
+        await page.fill("input[name='password']", self.password)
 
         # Trigger JS encryption and enable disabled fields
-        page.evaluate("""() => {
+        await page.evaluate("""() => {
             const form = document.querySelector('form');
             if (typeof doPasswordEncrypt === 'function') {
                 doPasswordEncrypt(form);
@@ -120,13 +120,13 @@ class EdsbyScraper:
         }""")
 
         try:
-            page.click("input[type='submit']")
-            page.wait_for_load_state("networkidle")
+            await page.click("input[type='submit']")
+            await page.wait_for_load_state("networkidle")
         except Exception as e:
             raise EdsbyUnavailableError(f"Login submission failed: {e}")
 
         current_url = page.url
-        body_text = page.inner_text("body")
+        body_text = await page.inner_text("body")
 
         if "/login" in current_url.lower():
             if "bad" in body_text.lower() or "incorrect" in body_text.lower():
@@ -138,16 +138,16 @@ class EdsbyScraper:
 
         return True
 
-    def discover_children(self) -> List[EdsbyChild]:
+    async def discover_children(self) -> List[EdsbyChild]:
         """Discover all children linked to this parent account."""
         if not self._page:
-            self.login()
+            await self.login()
 
         page = self._page
         children: List[EdsbyChild] = []
 
         # Strategy 1: Look for student/child cards on home page with data-nid
-        nids = page.evaluate("""() => {
+        nids = await page.evaluate("""() => {
             const cards = document.querySelectorAll('[data-nid]');
             return Array.from(cards).map(el => ({
                 nid: el.getAttribute('data-nid'),
@@ -164,10 +164,10 @@ class EdsbyScraper:
 
         # Strategy 2: Look for links to student profiles
         if not children:
-            links = page.query_selector_all("a")
+            links = await page.query_selector_all("a")
             for link in links:
-                href = link.get_attribute("href") or ""
-                text = link.inner_text().strip()
+                href = await link.get_attribute("href") or ""
+                text = (await link.inner_text()).strip()
                 # Edsby student links typically contain /p/ or /node/ with student IDs
                 if "/p/" in href or "/node/" in href or "student" in href.lower():
                     if len(text) > 1 and len(text) < 60 and text not in [c.name for c in children]:
@@ -178,39 +178,39 @@ class EdsbyScraper:
 
         # Strategy 3: Look for panel/class cards with student photos/names
         if not children:
-            cards = page.query_selector_all(".card, .panel, .tile, [class*='student'], [class*='child']")
+            cards = await page.query_selector_all(".card, .panel, .tile, [class*='student'], [class*='child']")
             for card in cards:
-                text = card.inner_text().strip()
+                text = (await card.inner_text()).strip()
                 if len(text) > 1 and len(text) < 60:
-                    nid = card.get_attribute("data-nid") or card.get_attribute("onclick") or ""
+                    nid = await card.get_attribute("data-nid") or await card.get_attribute("onclick") or ""
                     children.append(EdsbyChild(name=text, nid=nid))
 
         return children
 
-    def _navigate_to_child_grades(self, child: EdsbyChild) -> bool:
+    async def _navigate_to_child_grades(self, child: EdsbyChild) -> bool:
         """Navigate to a specific child's gradebook page."""
         page = self._page
 
         # Strategy 1: Click the child's card/link by data-nid
         if child.nid:
-            clicked = page.evaluate(f"""(nid) => {{
+            clicked = await page.evaluate(f"""(nid) => {{
                 const el = document.querySelector(`[data-nid="${{nid}}"]`);
                 if (el) {{ el.click(); return true; }}
                 return false;
             }}""", child.nid)
             if clicked:
-                page.wait_for_load_state("networkidle")
+                await page.wait_for_load_state("networkidle")
                 return True
 
         # Strategy 2: Look for a grades/report card link after clicking child
-        links = page.query_selector_all("a")
+        links = await page.query_selector_all("a")
         for link in links:
-            text = link.inner_text().strip().lower()
-            href = link.get_attribute("href") or ""
+            text = (await link.inner_text()).strip().lower()
+            href = await link.get_attribute("href") or ""
             if any(w in text for w in ["grade", "report card", "progress", "mark", "transcript"]):
                 try:
-                    link.click()
-                    page.wait_for_load_state("networkidle")
+                    await link.click()
+                    await page.wait_for_load_state("networkidle")
                     return True
                 except Exception:
                     continue
@@ -223,23 +223,23 @@ class EdsbyScraper:
         ]
         for url in grade_urls:
             try:
-                page.goto(url, wait_until="networkidle")
+                await page.goto(url, wait_until="networkidle")
                 return True
             except Exception:
                 continue
 
         return False
 
-    def scrape_child_grades(self, child: EdsbyChild) -> List[EdsbyGrade]:
+    async def scrape_child_grades(self, child: EdsbyChild) -> List[EdsbyGrade]:
         """Scrape grades for a specific child."""
         page = self._page
         grades: List[EdsbyGrade] = []
 
         # Navigate to child's grades
-        if not self._navigate_to_child_grades(child):
+        if not await self._navigate_to_child_grades(child):
             return grades
 
-        content = page.content()
+        content = await page.content()
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(content, "html.parser")
 
@@ -316,18 +316,18 @@ class EdsbyScraper:
 
         return unique
 
-    def scrape_all_children_grades(self) -> List[EdsbyChild]:
+    async def scrape_all_children_grades(self) -> List[EdsbyChild]:
         """Discover all children and scrape grades for each."""
-        children = self.discover_children()
+        children = await self.discover_children()
         for child in children:
-            child.grades = self.scrape_child_grades(child)
+            child.grades = await self.scrape_child_grades(child)
             # Go back to home page for next child
-            self._page.goto(self.base_url, wait_until="networkidle")
+            await self._page.goto(self.base_url, wait_until="networkidle")
         return children
 
-    def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
+    async def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
         """Scrape grades. If child_name specified, return only that child's grades."""
-        children = self.scrape_all_children_grades()
+        children = await self.scrape_all_children_grades()
 
         if child_name and children:
             # Find matching child
@@ -344,17 +344,17 @@ class EdsbyScraper:
             all_grades.extend(child.grades)
         return all_grades
 
-    def close(self):
+    async def close(self):
         if self._browser:
-            self._browser.close()
+            await self._browser.close()
         if self._pw:
-            self._pw.__exit__(None, None, None)
+            await self._pw.stop()
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
 
 
 class MockEdsbyScraper:
@@ -366,18 +366,18 @@ class MockEdsbyScraper:
         self.password = password
         self._seed = hash(username) % 10000
 
-    def login(self) -> bool:
+    async def login(self) -> bool:
         if "wrong" in self.password.lower() or "bad" in self.password.lower():
             raise EdsbyAuthError("Invalid credentials (mock)")
         return True
 
-    def discover_children(self) -> List[EdsbyChild]:
+    async def discover_children(self) -> List[EdsbyChild]:
         return [
             EdsbyChild(name="Rowen Toshack", nid="mock_rowen", grades=[]),
             EdsbyChild(name="Alex Toshack", nid="mock_alex", grades=[]),
         ]
 
-    def scrape_child_grades(self, child: EdsbyChild) -> List[EdsbyGrade]:
+    async def scrape_child_grades(self, child: EdsbyChild) -> List[EdsbyGrade]:
         random.seed(self._seed + hash(child.name))
         subjects = {
             "Math": {"base": 78, "variance": 12},
@@ -398,27 +398,27 @@ class MockEdsbyScraper:
             ))
         return grades
 
-    def scrape_all_children_grades(self) -> List[EdsbyChild]:
-        children = self.discover_children()
+    async def scrape_all_children_grades(self) -> List[EdsbyChild]:
+        children = await self.discover_children()
         for child in children:
-            child.grades = self.scrape_child_grades(child)
+            child.grades = await self.scrape_child_grades(child)
         return children
 
-    def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
-        children = self.scrape_all_children_grades()
+    async def scrape_grades(self, child_name: Optional[str] = None) -> List[EdsbyGrade]:
+        children = await self.scrape_all_children_grades()
         if child_name:
             for child in children:
                 if child_name.lower() in child.name.lower():
                     return child.grades
         return [g for c in children for g in c.grades]
 
-    def close(self):
+    async def close(self):
         pass
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
 
 

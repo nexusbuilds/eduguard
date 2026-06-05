@@ -60,8 +60,8 @@ async def _sync_edsby_for_parent(parent: Parent, use_mock: bool = False) -> dict
         scraper = create_scraper(config.base_url, config.username, password, use_mock=use_mock)
 
         try:
-            with scraper:
-                edsby_children = scraper.scrape_all_children_grades()
+            async with scraper:
+                edsby_children = await scraper.scrape_all_children_grades()
         except EdsbyAuthError as e:
             config.sync_error_message = str(e)
             config.is_active = False
@@ -207,10 +207,10 @@ async def test_edsby_connection(current_user: Parent = Depends(get_current_user)
         scraper = create_scraper(config.base_url, config.username, password, use_mock=False)
 
         try:
-            with scraper:
-                scraper.login()
+            async with scraper:
+                await scraper.login()
                 # Try to discover children
-                children = scraper.discover_children()
+                children = await scraper.discover_children()
                 return {
                     "status": "success",
                     "message": "Edsby connection successful",

@@ -16,3 +16,4 @@ cryptography==44.0.0
 apscheduler==3.11.0
 beautifulsoup4==4.14.3
 requests==2.34.2
+playwright==1.60.0
