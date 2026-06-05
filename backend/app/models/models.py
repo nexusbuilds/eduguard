@@ -23,11 +23,9 @@ class Child(Base):
     birthdate = Column(Date, nullable=True)
     email = Column(String, nullable=True)
     parent_id = Column(Integer, ForeignKey('parents.id'))
-    device_id = Column(Integer, ForeignKey('devices.id'), nullable=True)
     access_level = Column(String, default="full")  # full, limited, research-only
     created_at = Column(DateTime, server_default=func.now())
     parent = relationship("Parent", back_populates="children")
-    device = relationship("Device", back_populates="child", uselist=False)
     grades = relationship("GradeSync", back_populates="child", cascade="all, delete-orphan")
     chores = relationship("Chore", back_populates="child", cascade="all, delete-orphan")
     precommitments = relationship("Precommitment", back_populates="child", cascade="all, delete-orphan")
@@ -44,7 +42,7 @@ class Device(Base):
     is_active = Column(Boolean, default=True)
     child_id = Column(Integer, ForeignKey('children.id'), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
-    child = relationship("Child", back_populates="device")
+    child = relationship("Child", backref="device", uselist=False)
 
 class GradeSync(Base):
     __tablename__ = 'grades'

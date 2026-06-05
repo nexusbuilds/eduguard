@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGuard | Protect Your Child's Digital Future</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+  <link rel="stylesheet" href="/static/css/custom.css">
+  <script>
+    // For adding shadow on scroll
+    window.addEventListener('scroll', function() {
+      const header = document.querySelector('header');
+      if (window.scrollY > 50) {
+        header.classList.add('shadow-md');
+      } else {
+        header.classList.remove('shadow-md');
+      }
+    });
+  </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+  <header class="fixed w-full top-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-md transition-shadow">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="/" class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 22.523 5.754 23 7.5 23s3.332-.477 4.5-1.247m3-1.017l.291-1.305c.053-.237.154-.455.291-.644a2.295 2.295 0 0 1 2.153-1.5c.679 0 1.283.381 1.5.978.155.414.193.864.105 1.294l-.29 1.304c-.053.238-.154.457-.291.645a2.295 2.295 0 0 0-2.153 1.5c-.679 0-1.283-.381-1.5-.978-.155-.413-.193-.863-.105-1.293" />
+        </svg>
+        EduGuard
+      </a>
+      <nav class="hidden md:flex space-x-6">
+        <a href="#home" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">Home</a>
+        <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">Features</a>
+        <a href="#how-it-works" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">How it Works</a>
+        <a href="#for-parents" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">For Parents</a>
+        <a href="#pricing" class="text-gray-600 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 font-medium py-2">Pricing</a>
+      </nav>
+      <div class="flex space-x-4">
+        <a href="/login" class="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition font-medium">Login</a>
+        <a href="/register" class="bg-white text-teal-600 border-2 border-teal-600 px-4 py-2 rounded-md hover:bg-teal-50 transition font-medium">Sign Up Free</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero section -->
+    <section id="home" class="pt-16 pb-12 md:pt-24 md:pb-20 bg-gradient-to-r from-teal-50 to-white dark:from-gray-800 dark:to-gray-900">
+      <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div>
+          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Protect Your Child's Digital Future</h1>
+          <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6">Comprehensive parental control to safeguard your child’s online activities</p>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <a href="/register" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:shadow-lg transition">Get Started Free</a>
+            <a href="#features" class="bg-transparent border border-teal-600 text-teal-600 px-6 py-3 rounded-lg font-semibold hover:bg-teal-50 transition">Learn More</a>
+          </div>
+        </div>
+        <div class="flex justify-center">
+          <img src="/static/images/hero.svg" alt="Parental Control Illustration" class="max-w-md rounded-lg shadow-lg" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Problem section -->
+    <section id="problem" class="py-16 bg-white dark:bg-gray-900">
+      <div class="container mx-auto px-4">
+        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-8">The Digital Challenge</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
+            <div class="flex items-center mb-4">
+              <svg class="h-10 w-10 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v12a4 4 0 004 4h4a4 4 0 004-4V6a4 4 0 00-4-4h-4zm0 2a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4zm8-2a4 4 0 014 4v12a4 4 0 01-4 4h-4a4 4 0 01-4-4V6a4 4 0 014-4h4zm0 2a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4z" clip-rule="evenodd" />
+              </svg>
+              <h3 class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Screen Time Management</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300">Set daily limits and monitor usage to prevent excessive screen time and promote healthy habits.</p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
+            <div class="flex items-center mb-4">
+              <svg class="h-10 w-10 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M2.003 5.884L10 9.882l7.997-3.998L2.003 5.884zm12.006 8.232L10 12.118l-7.997 3.998 7.997 3.998L10 12.118l7.997-3.998zM14 14h-4v-2h4v2zm0-4h-4V8h4v2z" clip-rule="evenodd" />
+              </svg>
+              <h3 class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Unsafe Content Protection</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300">Automatically filter inappropriate websites and content to keep your child safe from harmful material.</p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
+            <div class="flex items-center mb-4">
+              <svg class="h-10 w-10 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M6.25 14.5a.75.75 0 01.75-.75h.25v-3a.75.75 0 011.5 0v3h.25a.75.75 0 010 1.5h-.25v3a.75.75 0 01-1.5 0v-3h-.25a.75.75 0 01-.75-.75zM13 14a.75.75 0 01.75-.75h.25v-3a.75.75 0 011.5 0v3h.25a.75.75 0 010 1.5h-.25v3a.75.75 0 01-1.5 0v-3h-.25a.75.75 0 01-.75-.75zM19.75 14.5a.75.75 0 01.75-.75h.25v-3a.75.75 0 011.5 0v3h.25a.75.75 0 010 1.5h-.25v3a.75.75 0 01-1.5 0v-3h-.25a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+              </svg>
+              <h3 class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Academic Distraction</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300">Block distracting websites during study hours to help your child focus on schoolwork.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Solution section -->
+    <section id="features" class="py-16 bg-gray-50 dark:bg-gray-800">
+      <div class="container mx-auto px-4">
+        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
+          How EduGuard Helps
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Feature 1 -->
+          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
+            <div class="flex items-start mb-4">
+              <div class="bg-teal-100 dark:bg-teal-900 p-3 rounded-lg mr-4">
+                <svg class="h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12 3c-5.384 0-9.75 4.366-9.75 9.75s4.366 9.75 9.75 9.75 9.75-4.366 9.75-9.75S17.384 3 12 3zm0 1.5a8.25 8.25 0 018.25 8.25 8.25 8.25 0 01-8.25 8.25 8.25 8.25 0 01-8.25-8.25 8.25 8.25 0 018.25-8.25zm6.226 5.324a.75.75 0 00-1.06-1.06l-2.49 2.49-2.49-2.49a.75.75 0 00-1.06 1.06l2.49 2.49-2.49 2.49a.75.75 0 101.06 1.06l2.49-2.49 2.49 2.49a.75.75 0 101.06-1.06l-2.49-2.49 2.49-2.49z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Content Filtering</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300">Block inappropriate websites and content to keep your child safe from harmful material online.</p>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
+            <div class="flex items-start mb-4">
+              <div class="bg-teal-100 dark:bg-teal-900 p-3 rounded-lg mr-4">
+                <svg class="h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4 5a3 3 0 013-3h10a3 3 0 013 3v14a3 3 0 01-3 3H7a3 3 0 01-3-3V5zm12 9a1 1 0 00-1-1h-5v2h5a1 1 0 001-1zm-1 1a1 1 0 00-1 1v2h5a1 1 0 001-1v-2h-5z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd" d="M14 9a1 1 0 011 1v2a1 1 0 01-1 1h-5v-4h5zm-6 8a1 1 0 011-1h2a1 1 0 011 1v3a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Time Limits</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300">Set daily screen time limits for apps, games, and websites to encourage healthy digital habits.</p>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
+            <div class="flex items-start mb-4">
+              <div class="bg-teal-100 dark:bg-teal-900 p-3 rounded-lg mr-4">
+                <svg class="h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm11 5V18a1 1 0 01-2 0v-3l-7-4V14a1 1 0 11-2 0v-4.52a2 2 0 011-1.73A2.004 2.004 0 0112 8a2 2 0 012 2v.28a2 2 0 011 1.73 2.004 2.004 0 01-1 1.73V14a1 1 0 11-2 0v-3l7-4v2.52A2 2 0 0113 9z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Chore Rewards</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300">Reward good behavior and chores with screen time allowances in a structured, positive manner.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it Works section -->
+    <section id="how-it-works" class="py-16 bg-white dark:bg-gray-900">
+      <div class="container mx-auto px-4">
+        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
+          How It Works
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
+            <div class="bg-teal-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20v-4L8 6H4l4 14v-14h4l4 14v-14h4l-4 14v-14h4l-4 14v-14h4l-4 14v-14h4" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Sign Up</h3>
+            <p class="text-gray-600 dark:text-gray-300 mt-2">Create your account and link your child's devices in minutes.</p>
+          </div>
+
+          <div class="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
+            <div class="bg-teal-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Children</h3>
+            <p class="text-gray-600 dark:text-gray-300 mt-2">Manage and monitor your children's online activities from a single dashboard.</p>
+          </div>
+
+          <div class="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-6 shadow">
+            <div class="bg-teal-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Set Rules</h3>
+            <p class="text-gray-600 dark:text-gray-300 mt-2">Customize content filters, screen time limits, and rewards to fit your family's needs.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials section -->
+    <section id="testimonials" class="py-16 bg-gray-50 dark:bg-gray-800">
+      <div class="container mx-auto px-4">
+        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-10">
+          What Parents Say
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
+            <div class="flex items-center mb-4">
+              <div class="text-teal-600 font-bold text-2xl mr-4">"</div>
+              <div>
+                <p class="text-gray-600 dark:text-gray-300">EduGuard has given me peace of mind knowing my daughter is safe online. The content filtering works perfectly.</p>
+                <div class="mt-4 flex items-center">
+                  <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3">
+                    <span class="text-teal-600 font-bold">JF</span>
+                  </div>
+                  <div>
+                    <p class="font-bold text-gray-900 dark:text-white">John F.</p>
+                    <p class="text-gray-500">Parent of a 9-year-old</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
+            <div class="flex items-center mb-4">
+              <div class="text-teal-600 font-bold text-2xl mr-4">"</div>
+              <div>
+                <p class="text-gray-600 dark:text-gray-300">The time limits feature has reduced screen time by 30% and improved my son's focus on schoolwork.</p>
+                <div class="mt-4 flex items-center">
+                  <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3">
+                    <span class="text-teal-600 font-bold">SM</span>
+                  </div>
+                  <div>
+                    <p class="font-bold text-gray-900 dark:text-white">Sarah M.</p>
+                    <p class="text-gray-500">Parent of a 12-year-old</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-700 rounded-lg p-6 shadow">
+            <div class="flex items-center mb-4">
+              <div class="text-teal-600 font-bold text-2xl mr-4">"</div>
+              <div>
+                <p class="text-gray-600 dark:text-gray-300">Chore rewards system has helped my kids learn responsibility while managing their screen time effectively.</p>
+                <div class="mt-4 flex items-center">
+                  <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3">
+                    <span class="text-teal-600 font-bold">TP</span>
+                  </div>
+                  <div>
+                    <p class="font-bold text-gray-900 dark:text-white">Terrance P.</p>
+                    <p class="text-gray-500">Parent of two teenagers</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA section -->
+    <section class="py-16 bg-teal-600 text-white">
+      <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Start Protecting Your Family Today</h2>
+        <p class="text-teal-100 mb-8 max-w-2xl mx-auto">Join hundreds of families using EduGuard to keep their children safe online.</p>
+        <a href="/register" class="bg-white text-teal-600 px-8 py-4 rounded-lg font-bold shadow hover:shadow-lg transition">Sign Up Free</a>
+      </div>
+    </section>
+
+    <!-- Footer section -->
+    <footer class="bg-gray-800 text-white py-8">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div>
+            <h3 class="text-xl font-bold mb-4">EduGuard</h3>
+            <p class="text-gray-400">Keeping your family safe in the digital world.</p>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+            <ul class="space-y-2">
+              <li><a href="#home" class="text-gray-400 hover:text-white">Home</a></li>
+              <li><a href="#features" class="text-gray-400 hover:text-white">Features</a></li>
+              <li><a href="#how-it-works" class="text-gray-400 hover:text-white">How It Works</a></li>
+              <li><a href="#testimonials" class="text-gray-400 hover:text-white">Testimonials</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Resources</h4>
+            <ul class="space-y-2">
+              <li><a href="/about" class="text-gray-400 hover:text-white">About Us</a></li>
+              <li><a href="/blog" class="text-gray-400 hover:text-white">Blog</a></li>
+              <li><a href="/privacy-policy" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+              <li><a href="/terms" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Contact</h4>
+            <ul class="space-y-2">
+              <li><a href="mailto:support@eduguard.com" class="text-gray-400 hover:text-white">support@eduguard.com</a></li>
+              <li><a href="tel:+11234567890" class="text-gray-400 hover:text-white">+1 (123) 456-7890</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="text-center mt-8 pt-8 border-t border-gray-700 text-gray-400">
+          <p>&copy; 2026 EduGuard. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // Scroll shadow for header
+    window.addEventListener('scroll', function() {
+      const header = document.querySelector('header');
+      if (window.scrollY > 50) {
+        header.classList.add('shadow-md');
+      } else {
+        header.classList.remove('shadow-md');
+      }
+    });
+  </script>
+</body>
+</html>

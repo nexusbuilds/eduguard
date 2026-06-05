@@ -8,13 +8,17 @@ class TenantMiddleware(BaseHTTPMiddleware):
         tenant_id = None
 
         if host:
-            parts = host.split(".")
-            if len(parts) > 2 and parts[0] not in ["www", "localhost", "127.0.0.1"]:
-                tenant_id = parts[0]
-            elif len(parts) == 2:  # e.g., eduguard.com
+            host = host.split(":")[0]
+            if host in ["localhost", "127.0.0.1"] or "tail1f5702.ts.net" in host or "nexus" in host:
                 tenant_id = "default"
             else:
-                tenant_id = request.headers.get("X-Tenant-ID")
+                parts = host.split(".")
+                if len(parts) > 2 and parts[0] not in ["www", "localhost", "127.0.0.1"]:
+                    tenant_id = parts[0]
+                elif len(parts) == 2:  # e.g., eduguard.com
+                    tenant_id = "default"
+                else:
+                    tenant_id = request.headers.get("X-Tenant-ID")
         else:
             tenant_id = request.headers.get("X-Tenant-ID")
 
