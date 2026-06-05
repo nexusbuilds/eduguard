@@ -4,6 +4,7 @@ services:
   tailscale:
     image: tailscale/tailscale:latest
     container_name: eduguard-tailscale
+    profiles: ["tailscale"]
     hostname: ${TS_HOSTNAME:-eduguard}
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
@@ -50,14 +51,12 @@ services:
     networks:
       - eduguard-net
     restart: unless-stopped
-    depends_on:
-      - tailscale
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 15s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 20s
 
   wg-easy:
     image: ghcr.io/wg-easy/wg-easy
@@ -84,9 +83,9 @@ services:
       - wg-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:51821/"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:51821/ | grep -q WireGuard"]
+      interval: 15s
+      timeout: 5s
       retries: 3
       start_period: 20s
 
@@ -94,7 +93,7 @@ services:
     image: nginx:alpine
     container_name: eduguard-nginx
     ports:
-      - "127.0.0.1:8080:80"
+      - "0.0.0.0:8080:80"
     expose:
       - "443"
     volumes:
@@ -105,12 +104,11 @@ services:
       - eduguard-net
     depends_on:
       - fastapi
-      - tailscale
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/health | grep -q healthy"]
+      interval: 15s
+      timeout: 5s
       retries: 3
       start_period: 10s
 
