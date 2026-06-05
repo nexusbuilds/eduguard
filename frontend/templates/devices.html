@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-6">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white">WireGuard Device Management</h1>
+
+    <div class="flex flex-wrap -mx-4">
+        <div class="w-full lg:w-1/2 px-4 mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Add New Device</h2>
+                <form hx-post="/devices/add" hx-target="body" hx-swap="innerHTML" class="space-y-4">
+                    <div>
+                        <label for="child_id" class="block text-gray-700 dark:text-gray-300">Child</label>
+                        <select id="child_id" name="child_id" class="mt-1 block w-full p-2 border rounded-md" required>
+                            <option value="">Select a child...</option>
+                            <!-- Options populated from API -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="device_name" class="block text-gray-700 dark:text-gray-300">Device Name</label>
+                        <input type="text" id="device_name" name="device_name" class="mt-1 block w-full p-2 border rounded-md" required>
+                    </div>
+                    <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md">
+                        Add Device
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="w-full lg:w-1/2 px-4 mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Device Status</h2>
+                <div hx-get="/api/devices/status" hx-trigger="load" hx-swap="innerHTML">
+                    <div class="text-center py-4">Loading device status...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 my-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">WireGuard Peers</h2>
+            <div hx-get="/api/wireguard/peers" hx-trigger="load" hx-swap="innerHTML">
+                <div class="text-center py-4">Loading peers...</div>
+            </div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">QR Codes</h2>
+            <div hx-get="/api/wireguard/qrcodes" hx-trigger="load" hx-swap="innerHTML">
+                <div class="text-center py-4">Loading QR codes...</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

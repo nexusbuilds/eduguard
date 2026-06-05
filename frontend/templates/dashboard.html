@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-6">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Parent Dashboard</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Left Column: Children List -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Children</h2>
+                <button
+                    hx-get="/children/add"
+                    hx-target="#children-list"
+                    hx-swap="innerHTML"
+                    class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md flex items-center"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add Child
+                </button>
+            </div>
+            <div id="children-list" hx-get="/api/children" hx-trigger="load" hx-swap="innerHTML">
+                <div class="text-center py-4">
+                    Loading children...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Quick Actions -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Quick Actions</h2>
+            <div class="space-y-4">
+                <button
+                    hx-post="/api/action?command=lock_all"
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                >
+                    Lock All Devices
+                </button>
+                <button
+                    hx-post="/api/action?command=unlock_all"
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+                >
+                    Unlock All Devices
+                </button>
+                <button
+                    hx-post="/api/action?command=pause_all"
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                    class="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+                >
+                    Pause All Activity
+                </button>
+                <button
+                    hx-post="/api/action?command=resume_all"
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                    class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md"
+                >
+                    Resume All Activity
+                </button>
+                <a
+                    href="/chores"
+                    hx-swap="innerHTML"
+                    class="w-full bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md block text-center"
+                >
+                    Manage Chores
+                </a>
+                <a
+                    href="/grades"
+                    hx-swap="innerHTML"
+                    class="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md block text-center"
+                >
+                    Grade Sync
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Tiers Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <!-- Access Tiers -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Access Tiers</h2>
+            <div hx-get="/api/access-tiers" hx-trigger="load" hx-swap="innerHTML">
+                <div class="text-center py-4">Loading access tiers...</div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Recent Activity</h2>
+            <div hx-get="/api/activity" hx-trigger="load" hx-swap="innerHTML">
+                <div class="text-center py-4">Loading activity logs...</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

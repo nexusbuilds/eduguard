@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-6">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Chore Management</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Add Chore Form -->
+        <div class="col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Create New Chore</h2>
+                <form hx-post="/chores/create" hx-target="#chores-list" hx-swap="innerHTML" class="space-y-4">
+                    <div>
+                        <label for="title" class="block text-gray-700 dark:text-gray-300">Chore Title</label>
+                        <input type="text" id="title" name="title" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="description" class="block text-gray-700 dark:text-gray-300">Description</label>
+                        <textarea id="description" name="description" class="mt-1 block w-full px-3 py-2 border rounded-md" rows="3"></textarea>
+                    </div>
+                    <div>
+                        <label for="recurrence" class="block text-gray-700 dark:text-gray-300">Recurrence</label>
+                        <select id="recurrence" name="recurrence" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md">
+                        Create Chore
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Chores List -->
+        <div class="col-span-2">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Active Chores</h2>
+                <div id="chores-list" hx-get="/api/chores" hx-trigger="load" hx-swap="innerHTML">
+                    <div class="text-center py-4">Loading chores...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <!-- Photo Upload -->
+        <div class="col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Upload Chore Completion Photo</h2>
+                <form hx-post="/chores/upload-attachment" hx-target="body" hx-swap="innerHTML" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label for="chore_id" class="block text-gray-700 dark:text-gray-300">Select Chore</label>
+                        <select id="chore_id" name="chore_id" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
+                            <option value="">Select a chore...</option>
+                            <!-- Options from API -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="photo" class="block text-gray-700 dark:text-gray-300">Photo</label>
+                        <input type="file" id="photo" name="photo" class="mt-1 block w-full" required>
+                    </div>
+                    <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md">
+                        Upload Photo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

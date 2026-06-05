@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-6">
+    <h1 class="text-3xl font-bold mb-4 text-gray-800 dark:text-white">Child Management</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Add Child Form -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Add New Child</h2>
+            <form hx-post="/children/add" hx-target="#children-list" hx-swap="innerHTML" class="space-y-4">
+                <div>
+                    <label for="name" class="block text-gray-700 dark:text-gray-300">Name</label>
+                    <input type="text" id="name" name="name" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
+                </div>
+                <div>
+                    <label for="age" class="block text-gray-700 dark:text-gray-300">Age</label>
+                    <input type="number" id="age" name="age" class="mt-1 block w-full px-3 py-2 border rounded-md" required min="1" max="18">
+                </div>
+                <div>
+                    <label for="email" class="block text-gray-700 dark:text-gray-300">Email</label>
+                    <input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 border rounded-md" required>
+                </div>
+                <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md">
+                    Add Child
+                </button>
+            </form>
+        </div>
+
+        <!-- Children List -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Children List</h2>
+            <div id="children-list" hx-get="/api/children" hx-trigger="load" hx-swap="innerHTML">
+                <div class="text-center py-4">Loading children...</div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-8 border-gray-200 dark:border-gray-700">
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <!-- Device Management -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Device Management</h2>
+            <p class="text-gray-700 dark:text-gray-300 mb-4">Manage devices for each child. Click a child below to manage their devices.</p>
+            <div id="child-device-list" hx-get="/api/children/devices" hx-trigger="load" hx-swap="innerHTML">
+                <div class="text-center py-4">Loading child devices...</div>
+            </div>
+        </div>
+
+        <!-- Grade Sync Status -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Grade Sync Status</h2>
+            <div class="space-y-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <div class="text-sm font-medium text-blue-800 dark:text-blue-300">Edsby Integration</div>
+                    <div class="text-gray-700 dark:text-gray-300">Status: Active</div>
+                    <div class="text-gray-500 dark:text-gray-400">Last synced: 2 minutes ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
