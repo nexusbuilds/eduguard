@@ -474,10 +474,12 @@ class MockEdsbyScraper:
         return True
 
     async def discover_children(self) -> List[EdsbyChild]:
-        return [
-            EdsbyChild(name="Rowen Toshack", nid="mock_rowen", grades=[]),
-            EdsbyChild(name="Alex Toshack", nid="mock_alex", grades=[]),
-        ]
+        """Mock discovery returns no children by default.
+
+        Use this only when real Edsby is unavailable and you want to test
+        the sync pipeline without inventing fake student data.
+        """
+        return []
 
     async def scrape_child_grades(self, child: EdsbyChild) -> List[EdsbyGrade]:
         random.seed(self._seed + hash(child.name))
