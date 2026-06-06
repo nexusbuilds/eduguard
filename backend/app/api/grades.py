@@ -14,6 +14,20 @@ from datetime import datetime, date
 router = APIRouter()
 
 
+async def _auto_apply_tiers_for_children(child_ids: List[int], tenant_id: str) -> List[dict]:
+    """Auto-evaluate and apply access tiers for affected children."""
+    from app.api.policy import auto_apply_child_tier
+    results = []
+    for cid in child_ids:
+        try:
+            result = await auto_apply_child_tier(cid, tenant_id)
+            results.append(result)
+        except Exception:
+            # Non-critical: don't fail sync if tier application errors
+            pass
+    return results
+
+
 async def _get_edsby_config(parent_id: int):
     async with AsyncSessionLocal() as session:
         result = await session.execute(
@@ -91,6 +105,7 @@ async def _sync_edsby_for_parent(parent: Parent, use_mock: bool = False) -> dict
         # Match Edsby children to EduGuard children by name
         imported_total = 0
         matched_children = []
+        matched_child_ids = []
 
         for edsby_child in edsby_children:
             # Find matching EduGuard child by name
@@ -130,6 +145,7 @@ async def _sync_edsby_for_parent(parent: Parent, use_mock: bool = False) -> dict
                     session.add(new_grade)
                     imported_total += 1
 
+                matched_child_ids.append(matched_edu_child.id)
                 matched_children.append({
                     "edsby_name": edsby_child.name,
                     "edu_guard_name": f"{matched_edu_child.first_name} {matched_edu_child.last_name}",
@@ -140,12 +156,16 @@ async def _sync_edsby_for_parent(parent: Parent, use_mock: bool = False) -> dict
         config.sync_error_message = None
         await session.commit()
 
+        # Auto-apply access tiers based on the new grades
+        tier_updates = await _auto_apply_tiers_for_children(matched_child_ids, parent.tenant_id)
+
         return {
             "status": "success",
             "message": f"Imported {imported_total} grades for {len(matched_children)} children from Edsby",
             "synced_at": config.last_synced_at.isoformat(),
             "children": matched_children,
             "edsby_children_found": [c.name for c in edsby_children],
+            "tier_updates": tier_updates,
         }
 
 
@@ -166,6 +186,8 @@ async def create_grade(grade_data: GradeSyncCreate, current_user: Parent = Depen
         session.add(new_grade)
         await session.commit()
         await session.refresh(new_grade)
+        # Auto-apply tier for the affected child
+        await _auto_apply_tiers_for_children([grade_data.child_id], current_user.tenant_id)
         return new_grade
 
 

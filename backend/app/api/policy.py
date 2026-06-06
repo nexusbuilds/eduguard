@@ -25,25 +25,36 @@ async def evaluate_child_tier(child_id: int, tenant_id: str) -> PolicyResult:
         grades_result = await session.execute(select(GradeSync).where(GradeSync.child_id == child_id))
         grades = grades_result.scalars().all()
         avg_grade = None
+        numeric_grades = []
         if grades:
-            try:
-                avg_grade = sum(float(g.grade) for g in grades if g.grade.isdigit()) / len([g for g in grades if g.grade.isdigit()])
-            except:
-                avg_grade = None
+            for g in grades:
+                try:
+                    val = float(g.grade)
+                    if 0 <= val <= 100:
+                        numeric_grades.append(val)
+                except (ValueError, TypeError):
+                    continue
+            if numeric_grades:
+                avg_grade = sum(numeric_grades) / len(numeric_grades)
+
         chores_result = await session.execute(select(Chore).where(Chore.child_id == child_id))
         chores = chores_result.scalars().all()
         total = len(chores)
         completed = len([c for c in chores if c.is_completed and c.verified_by_parent])
         ratio = completed / total if total > 0 else 1.0
+
         if avg_grade is not None and avg_grade >= 80 and ratio >= 0.8:
             tier = "full"
-            reason = f"Excellent grades ({avg_grade:.0f}%) and {completed}/{total} chores completed"
+            reason = f"Excellent grades ({avg_grade:.1f}%) and {completed}/{total} chores completed"
         elif avg_grade is not None and avg_grade >= 65 and ratio >= 0.5:
             tier = "limited"
-            reason = f"Good grades ({avg_grade:.0f}%) and {completed}/{total} chores completed"
+            reason = f"Good grades ({avg_grade:.1f}%) and {completed}/{total} chores completed"
         else:
             tier = "research_only"
-            reason = f"Needs improvement"
+            if avg_grade is not None:
+                reason = f"Needs improvement ({avg_grade:.1f}% average). Focus on schoolwork to earn more access."
+            else:
+                reason = "No grades available yet. Defaulting to research-only until performance is assessed."
         return PolicyResult(
             child_id=child.id,
             child_name=f"{child.first_name} {child.last_name}",
@@ -74,3 +85,37 @@ async def apply_policy(child_id: int, tier: str, current_user: Parent = Depends(
         child.access_level = tier
         await session.commit()
         return {"message": f"Access tier updated to {tier}", "child_id": child_id}
+
+
+async def auto_apply_child_tier(child_id: int, tenant_id: str) -> dict:
+    """Evaluate and automatically apply the recommended access tier for a child.
+
+    Called after grade sync or manual grade entry so access level stays in sync
+    with academic performance.
+    """
+    from app.core.proxy import apply_tier_rules
+
+    evaluation = await evaluate_child_tier(child_id, tenant_id)
+    async with AsyncSessionLocal() as session:
+        child_result = await session.execute(select(Child).where(Child.id == child_id, Child.tenant_id == tenant_id))
+        child = child_result.scalars().first()
+        if child:
+            old_tier = child.access_level
+            child.access_level = evaluation.recommended_tier
+            await session.commit()
+            # Best-effort proxy rule application
+            try:
+                device_ids = []
+                if child.device:
+                    device_ids.append(child.device.id)
+                await apply_tier_rules(child.id, evaluation.recommended_tier, device_ids)
+            except Exception:
+                pass
+            return {
+                "child_id": child_id,
+                "old_tier": old_tier,
+                "new_tier": evaluation.recommended_tier,
+                "reason": evaluation.reason,
+                "grade_average": evaluation.grade_average,
+            }
+    return {"child_id": child_id, "error": "Child not found"}

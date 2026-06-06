@@ -352,11 +352,14 @@ async def add_grade_form(request: Request, child_id: int = Form(...), subject: s
     if not user:
         return RedirectResponse(url="/login", status_code=302)
     from app.models.models import GradeSync
+    from app.api.grades import _auto_apply_tiers_for_children
     async with AsyncSessionLocal() as session:
         gd = date.fromisoformat(grade_date) if grade_date else None
         new_grade = GradeSync(child_id=child_id, subject=subject, grade=grade, grade_date=gd, tenant_id=user.tenant_id)
         session.add(new_grade)
         await session.commit()
+    # Auto-apply access tier based on the new grade
+    await _auto_apply_tiers_for_children([child_id], user.tenant_id)
     return RedirectResponse(url="/grades", status_code=302)
 
 @app.post("/edsby/configure")
