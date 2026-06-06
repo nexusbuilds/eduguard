@@ -45,6 +45,8 @@ async def kid_login(request: Request, child_id: int = Form(...), pin: str = Form
 @router.get("/dashboard")
 async def kid_dashboard(request: Request):
     from app.main import templates
+    from app.core.incentives import get_tier_allowance
+    from datetime import date
     child = await get_child_from_pin(request)
     if not child:
         return RedirectResponse(url="/kid/login", status_code=302)
@@ -78,13 +80,17 @@ async def kid_dashboard(request: Request):
                 avg_grade = round(sum(numeric) / len(numeric), 1) if numeric else None
             except:
                 avg_grade = None
+        
+        # Time allowance
+        allowance = get_tier_allowance(child.access_level, child.banked_hours or 0, date.today())
     
     return templates.TemplateResponse(request=request, name="kid_dashboard.html", context={
         "child": child,
         "grades": grades,
         "chores": chores,
         "devices": devices,
-        "avg_grade": avg_grade
+        "avg_grade": avg_grade,
+        "allowance": allowance,
     })
 
 @router.post("/chores/{chore_id}/claim")

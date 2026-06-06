@@ -41,6 +41,8 @@ class ChildRead(ChildBase):
     parent_id: int
     device_id: Optional[int] = None
     access_level: str = "full"
+    banked_hours: int = 0
+    previous_grade_average: Optional[str] = None
     created_at: Optional[datetime] = None
     class Config:
         from_attributes = True
@@ -50,6 +52,9 @@ class Child(ChildBase):
     tenant_id: str
     parent_id: int
     device_id: Optional[int] = None
+    access_level: str = "full"
+    banked_hours: int = 0
+    previous_grade_average: Optional[str] = None
     class Config:
         from_attributes = True
 

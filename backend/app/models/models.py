@@ -25,11 +25,14 @@ class Child(Base):
     parent_id = Column(Integer, ForeignKey('parents.id'))
     access_level = Column(String, default="full")  # full, limited, research-only
     pin = Column(String, nullable=True)  # 4-digit PIN for kid login
+    banked_hours = Column(Integer, default=0)  # discretionary banked full-access hours
+    previous_grade_average = Column(String, nullable=True)  # stored as string to preserve precision
     created_at = Column(DateTime, server_default=func.now())
     parent = relationship("Parent", back_populates="children")
     grades = relationship("GradeSync", back_populates="child", cascade="all, delete-orphan")
     chores = relationship("Chore", back_populates="child", cascade="all, delete-orphan")
     precommitments = relationship("Precommitment", back_populates="child", cascade="all, delete-orphan")
+    daily_usage = relationship("DailyUsage", back_populates="child", cascade="all, delete-orphan")
 
 class Device(Base):
     __tablename__ = 'devices'
@@ -108,7 +111,7 @@ class EdsbyConfig(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 class Counselor(Base):
-    __tablename__ = 'counselors'
+    __tablename__ = "counselors"
     id = Column(Integer, primary_key=True, index=True)
     tenant_id = Column(String, index=True, nullable=False, default='default')
     name = Column(String, nullable=False)
@@ -120,3 +123,14 @@ class Counselor(Base):
     email = Column(String, nullable=True)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
+
+class DailyUsage(Base):
+    __tablename__ = "daily_usage"
+    id = Column(Integer, primary_key=True, index=True)
+    child_id = Column(Integer, ForeignKey('children.id'), nullable=False)
+    usage_date = Column(Date, nullable=False)
+    full_access_minutes = Column(Integer, default=0)  # regular tier allowance used
+    banked_minutes = Column(Integer, default=0)  # banked discretionary time used
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    child = relationship("Child", back_populates="daily_usage")
